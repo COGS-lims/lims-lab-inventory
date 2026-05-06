@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Item } from "@/app/types/inventory";
 import styles from "./ItemCard.module.css";
 
@@ -28,7 +29,7 @@ export default function ItemCard({ item, labOwnerName }: Props) {
     const condition = CONDITION_CONFIG[conditionKey];
 
     return (
-        <div className={styles.card}>
+        <Link href={`/listings/${item.id}`} className={styles.card} style={{ textDecoration: "none", color: "inherit" }}>
             {/* Image placeholder for now */}
             <div className={styles.imageWrapper}>
                 <span className={styles.imagePlaceholder}>[image here]</span>
@@ -53,6 +54,6 @@ export default function ItemCard({ item, labOwnerName }: Props) {
                     </div>
                 )}
             </div>
-        </div>
+        </Link>
     );
 }

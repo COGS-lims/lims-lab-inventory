@@ -41,7 +41,7 @@ export default function MarketplacePage() {
         labId: "",
     });
 
-    // ── Filtered items for the grid ───────────────────────────────────────────
+    // Filtered items for the grid
     const filteredItems = useMemo(() => {
         return items.filter(item => {
             if (
@@ -60,11 +60,11 @@ export default function MarketplacePage() {
         });
     }, [items, filters]);
 
-    // ── Items belonging to the current user's labs (for sidebar) ─────────────
+    // Items belonging to the current user's labs (for sidebar)
     const myLabIds = new Set(currentUser.labs.map(l => l.labId));
     const myItems = items.filter(item => myLabIds.has(item.labId));
 
-    // ── Derive lab options for the filter dropdown from available items ───────
+    // Derive lab options for the filter dropdown from available items
     const labOptions = useMemo(() => {
         const seen = new Map<string, string>();
         items.forEach(item => {
@@ -76,7 +76,7 @@ export default function MarketplacePage() {
         return Array.from(seen.entries()).map(([id, name]) => ({ id, name }));
     }, [items]);
 
-    // ── Handlers (stubs — wire up to your form/modal later) ──────────────────
+    // Handlers (stubs — wire up to form/modal later)
     function handleEditItem(item: Item) {
         router.push(`/listings/${item.id}/edit`);
     }
