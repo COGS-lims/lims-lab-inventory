@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { useInventory } from "@/app/hooks/useInventory";
 import ItemGrid from "@/components/marketplace/ItemGrid";
 import MarketplaceFilters, {
@@ -29,6 +30,7 @@ const MOCK_USER: User = {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function MarketplacePage() {
+    const router = useRouter();
     const currentUser = MOCK_USER; // swap with real auth
 
     const { items, isLoading, error } = useInventory();
@@ -76,13 +78,11 @@ export default function MarketplacePage() {
 
     // ── Handlers (stubs — wire up to your form/modal later) ──────────────────
     function handleEditItem(item: Item) {
-        console.log("Edit item:", item.id);
-        // TODO: open edit modal/drawer
+        router.push(`/listings/${item.id}/edit`);
     }
 
     function handleListNewItem() {
-        console.log("List new item");
-        // TODO: open create item form
+        router.push("/listings/new");
     }
 
     function handleEditProfile() {

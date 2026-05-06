@@ -1,6 +1,6 @@
 import { connectToDatabase } from "@/lib/mongoose";
+import type { Listing } from "@/models/Listing";
 import { getListing } from "@/services/listings/listings";
-import { Listing } from "@/models/Listing";
 import { ListingDetails } from "@/components/listings/ListingDetails";
 import { notFound } from "next/navigation";
 
@@ -47,17 +47,39 @@ function getListingContactEmail() {
  * @returns listing page as entry point
  */
 export default async function ListingPage({ params }: ListingPageProps) {
-  // const { id } = await params; to test styling page
-  try {
-    // await connectToDatabase();
-    // const listing = await getListing(id);
+  const { id } = await params;
 
-    // if (!listing) notFound();
+  const fallbackListing: Listing = {
+    id,
+    itemName: "Listing Preview",
+    itemId: id,
+    labName: "Marketplace",
+    labLocation: "Unavailable in offline dev mode",
+    labId: "lab-dev-fallback",
+    imageUrls: [],
+    quantityAvailable: 1,
+    createdAt: new Date(),
+    expiryDate: undefined,
+    description:
+      "Database is currently unavailable. This fallback is only shown in development.",
+    price: 0,
+    status: "ACTIVE",
+    condition: "Good",
+    hazardTags: [],
+  };
+
+  try {
+    await connectToDatabase();
+    const listing = await getListing(id);
+
+    if (!listing) {
+      notFound();
+    }
 
     return (
       <ListingDetails
         contactEmail={getListingContactEmail()}
-        listing={mockListing}
+        listing={listing}
       />
     );
   } catch (error) {
