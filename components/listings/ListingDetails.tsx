@@ -140,7 +140,7 @@ export function ListingDetails({ contactEmail, listing }: ListingDetailsProps) {
       <section className={styles.page}>
         <div className={styles.topBar}>
           {/* PROPERLY LINK TO MARKETPLACE PAGE LATER */}
-          <Link className={styles.backLink} href="/listings">
+          <Link className={styles.backLink} href="/marketplace">
             <span className={styles.backIcon} aria-hidden="true">
               ←
             </span>
