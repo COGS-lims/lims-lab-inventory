@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from 'react';
+import { signIn } from "next-auth/react";
 
 // --- Custom Icon Components (No installation needed!) ---
 const FlaskIcon = ({ size = 24, className = "" }) => (
@@ -111,6 +112,7 @@ export default function SignInPage() {
         {/* SSO Sign In Button */}
         <button
           type="button"
+          onClick = {() => signIn("google", { callbackUrl: "/"})}
           className="w-full bg-[#5d8cb9] hover:bg-[#4f7ca6] text-white font-medium py-2.5 rounded-md border border-[#3b5e7d] transition-colors shadow-sm"
         >
           Sign in with UCSD SSO
