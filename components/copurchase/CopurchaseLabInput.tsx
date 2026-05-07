@@ -6,14 +6,8 @@ interface InviteModalProps {
   onSend: (email: string) => void;
 }
 
-export default function CopurchaseInvite({ onClose, onSend }: InviteModalProps) {
-  const [email, setEmail] = useState("");
-
-  const handleSend = () => {
-    onSend(email);
-    onClose();
-  };
-
+export default function CopurchaseLabInput({ onClose, onSend }: InviteModalProps) {
+  
   return (
     <div className={styles.modal}>
       <button className={styles.closeBtn} aria-label="Close" onClick={onClose}>
@@ -29,14 +23,11 @@ export default function CopurchaseInvite({ onClose, onSend }: InviteModalProps) 
 
       <input
         className={styles.input}
-        type="email"
-        value={email}
         placeholder="Dr. Xu"
-        onChange={(e) => setEmail(e.target.value)}
       />
 
       <div className={styles.actions}>
-        <button className={styles.btnPrimary} onClick={handleSend}>
+        <button className={styles.btnPrimary}>
           Enter
         </button>
       </div>
