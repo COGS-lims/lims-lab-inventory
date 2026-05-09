@@ -63,7 +63,9 @@
   outline: none;
   margin-bottom: 14px;
   box-sizing: border-box;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
 }
 
 .input:focus {
@@ -87,7 +89,9 @@
   padding: 0 20px;
   background: #2e6b8a;
   color: #fff;
-  transition: opacity 0.15s, transform 0.1s;
+  transition:
+    opacity 0.15s,
+    transform 0.1s;
 }
 
 .btnPrimary:hover {
@@ -108,7 +112,9 @@
   padding: 0 20px;
   background: #f0f0f0;
   color: #444;
-  transition: opacity 0.15s, transform 0.1s;
+  transition:
+    opacity 0.15s,
+    transform 0.1s;
 }
 
 .btnSecondary:hover {
@@ -117,4 +123,14 @@
 
 .btnSecondary:active {
   transform: scale(0.97);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.45);
 }
