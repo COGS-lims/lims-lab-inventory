@@ -1,7 +1,5 @@
 import Link from "next/link";
-import { ArrowLeft, ChevronDown } from "lucide-react";
-
-import { getLabs } from "@/services/labs/labs";
+import { ChevronDown } from "lucide-react";
 
 type LabOption = {
     id: string;
@@ -14,42 +12,20 @@ const fallbackLabs: LabOption[] = [
     { id: "bioengineering-shared-facility", name: "Bioengineering Shared Facility" },
 ];
 
-async function loadLabOptions(): Promise<LabOption[]> {
-    try {
-        const result = await getLabs({ page: 1, limit: 50 });
-        const labs = result.data.map((lab) => ({ id: lab.id, name: lab.name }));
-        return labs.length > 0 ? labs : fallbackLabs;
-    } catch {
-        return fallbackLabs;
-    }
-}
-
-export default async function AddLabAffiliationPage() {
-    const labOptions = await loadLabOptions();
+export default function AddLabAffiliationPage() {
+    const labOptions = fallbackLabs;
 
     return (
         <main className="min-h-screen bg-[#f7f6f2] text-[#111111]">
-            <div className="border-b border-[#ece4bd] bg-gradient-to-r from-[#f9f2c5] via-[#f7f3d5] to-[#f8f1c9]">
-                <div className="mx-auto flex h-[70px] w-full max-w-[1512px] items-center px-7 sm:px-10">
-                    <Link
-                        href="/profile?labs=empty"
-                        className="inline-flex items-center gap-4 text-base font-semibold transition-transform hover:-translate-x-0.5 sm:text-lg"
-                    >
-                        <ArrowLeft className="h-6 w-6" />
-                        <span>Back to Profile</span>
-                    </Link>
-                </div>
-            </div>
-
-            <div className="mx-auto flex min-h-[calc(100vh-70px)] max-w-[1512px] items-center justify-center px-6 py-14 sm:px-10">
+            <div className="mx-auto flex min-h-screen max-w-[1512px] items-center justify-center px-6 py-14 sm:px-10">
                 <section className="w-full max-w-[760px] rounded-[24px] border border-[#d9dee6] bg-white p-8 shadow-[0_18px_40px_rgba(15,23,42,0.08)] sm:p-12">
                     <div className="mb-10 space-y-3">
                         <h1 className="text-4xl font-semibold tracking-[-0.03em] text-[#111111]">
                             Add Lab Affiliation
                         </h1>
                         <p className="max-w-[520px] text-sm leading-6 text-[#69707a] sm:text-base">
-                            Choose a lab from the lab database, add your role, and record when
-                            you joined so it can appear on your profile page.
+                            Choose a lab, add your role, and record when you joined so it can
+                            appear on your profile page.
                         </p>
                     </div>
 
