@@ -6,7 +6,7 @@ interface InviteModalProps {
   onSend: (email: string) => void;
 }
 
-export default function CopurchaseInvite({
+export default function CopurchaseLabInput({
   onClose,
   onSend,
 }: InviteModalProps) {
