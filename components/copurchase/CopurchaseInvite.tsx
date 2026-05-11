@@ -13,6 +13,10 @@ export default function CopurchaseInvite({
   const [email, setEmail] = useState("");
 
   const handleSend = () => {
+    const subject = encodeURIComponent("Co-purchase Invitation");
+
+    window.location.href = `mailto:${email}?subject=${subject}`;
+
     onSend(email);
     onClose();
   };

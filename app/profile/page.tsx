@@ -4,9 +4,16 @@ import {
     CalendarDays,
     FlaskConical,
     Mail,
-    Phone,
+    Plus,
     UserRound,
 } from "lucide-react";
+
+type Affiliation = {
+    id: string;
+    labName: string;
+    role: string;
+    joined: string;
+};
 
 const profile = {
     name: "Dr. Xu",
@@ -14,11 +21,23 @@ const profile = {
     bio: "Experienced principal investigator at a lab specializing in computational neuroscience. Our lab focuses on developing innovative techniques for analysis in computational neuroscience.",
     email: "Xu@ucsd.edu",
     phone: "(xxx) xxx-xxxx",
-    labName: "Xu Computational Neuroscience Lab",
-    role: "Principal Investigator (PI)",
-    joined: "March 2026",
     status: "Active",
 };
+
+const sampleAffiliations: Affiliation[] = [
+    {
+        id: "xu-comp-neuro",
+        labName: "Xu Computational Neuroscience Lab",
+        role: "Principal Investigator (PI)",
+        joined: "March 2026",
+    },
+    {
+        id: "cognitive-systems-core",
+        labName: "Cognitive Systems Core",
+        role: "Lab Advisor",
+        joined: "January 2025",
+    },
+];
 
 function InfoCard({
     icon,
@@ -35,7 +54,7 @@ function InfoCard({
                 <div className="text-[#ff5a00]">{icon}</div>
                 <h2 className="text-2xl font-semibold tracking-[-0.02em] text-[#111111]">{title}</h2>
             </div>
-            <div className="space-y-8">{children}</div>
+            {children}
         </section>
     );
 }
@@ -55,7 +74,78 @@ function InfoRow({
     );
 }
 
-export default function ProfilePage() {
+function LabAffiliationsCard({
+    affiliations,
+}: Readonly<{
+    affiliations: Affiliation[];
+}>) {
+    if (affiliations.length === 0) {
+        return (
+            <InfoCard
+                icon={<FlaskConical className="h-10 w-10" strokeWidth={1.8} />}
+                title="Lab and Affiliation"
+            >
+                <div className="flex min-h-[220px] flex-col items-center justify-center gap-6 text-center">
+                    <p className="max-w-[280px] text-sm leading-6 text-[#444444]">
+                        You don&apos;t have a lab listed yet. Add your affiliation to connect
+                        with other researchers and manage your equipment listings.
+                    </p>
+                    <Link
+                        href="/profile/labs/new"
+                        className="inline-flex items-center justify-center rounded-xl bg-[#245f86] px-7 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1d4d6d]"
+                    >
+                        Add Lab
+                    </Link>
+                </div>
+            </InfoCard>
+        );
+    }
+
+    return (
+        <InfoCard
+            icon={<FlaskConical className="h-10 w-10" strokeWidth={1.8} />}
+            title="Lab and Affiliation"
+        >
+            <div className="space-y-7">
+                {affiliations.map((affiliation, index) => (
+                    <div
+                        key={affiliation.id}
+                        className={index === affiliations.length - 1 ? "" : "border-b border-[#d7dbe1] pb-7"}
+                    >
+                        <div className="space-y-6">
+                            <InfoRow label="Laboratory name" value={affiliation.labName} />
+                            <InfoRow label="Role at lab" value={affiliation.role} />
+                            <div className="flex items-center gap-4 pt-1 text-[#111111]">
+                                <CalendarDays className="h-8 w-8 text-[#2d2d2d]" strokeWidth={1.8} />
+                                <p className="text-xl font-medium">Joined {affiliation.joined}.</p>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+
+                <div className="pt-1">
+                    <Link
+                        href="/profile/labs/new"
+                        className="inline-flex items-center gap-2 rounded-xl border border-[#cdd7df] bg-white px-4 py-2 text-sm font-semibold text-[#245f86] transition-colors hover:bg-[#f4f9fc]"
+                    >
+                        <Plus className="h-4 w-4" />
+                        Add another lab
+                    </Link>
+                </div>
+            </div>
+        </InfoCard>
+    );
+}
+
+export default async function ProfilePage({
+    searchParams,
+}: Readonly<{
+    searchParams?: Promise<{ labs?: string }>;
+}>) {
+    const resolvedParams = searchParams ? await searchParams : undefined;
+    const affiliations =
+        resolvedParams?.labs === "empty" ? [] : sampleAffiliations;
+
     return (
         <main className="min-h-screen bg-[#f7f6f2] text-[#111111]">
             <div className="border-b border-[#ece4bd] bg-gradient-to-r from-[#f9f2c5] via-[#f7f3d5] to-[#f8f1c9]">
@@ -102,21 +192,13 @@ export default function ProfilePage() {
                         icon={<Mail className="h-10 w-10" strokeWidth={1.8} />}
                         title="Contact Information"
                     >
-                        <InfoRow label="Email address" value={profile.email} />
-                        <InfoRow label="Phone number" value={profile.phone} />
-                    </InfoCard>
-
-                    <InfoCard
-                        icon={<FlaskConical className="h-10 w-10" strokeWidth={1.8} />}
-                        title="Lab and Affiliation"
-                    >
-                        <InfoRow label="Laboratory name" value={profile.labName} />
-                        <InfoRow label="Role at lab" value={profile.role} />
-                        <div className="flex items-center gap-4 pt-2 text-[#111111]">
-                            <CalendarDays className="h-9 w-9 text-[#2d2d2d]" strokeWidth={1.8} />
-                            <p className="text-2xl font-medium">Joined {profile.joined}.</p>
+                        <div className="space-y-8">
+                            <InfoRow label="Email address" value={profile.email} />
+                            <InfoRow label="Phone number" value={profile.phone} />
                         </div>
                     </InfoCard>
+
+                    <LabAffiliationsCard affiliations={affiliations} />
                 </div>
 
                 <div className="flex justify-end">
