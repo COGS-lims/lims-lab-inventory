@@ -47,7 +47,7 @@ export default function MarketplaceFilters({ labOptions, onChange }: Props) {
 
     return (
         <div className={styles.wrapper}>
-            {/* Search bar + pills */}
+            {/* Search bar */}
             <div className={styles.searchBar}>
                 <svg
                     className={styles.searchIcon}
@@ -70,27 +70,28 @@ export default function MarketplaceFilters({ labOptions, onChange }: Props) {
                     onChange={e => handleSearch(e.target.value)}
                     className={styles.searchInput}
                 />
+            </div>
 
-                <div className={styles.pills}>
-                    {FILTER_PILLS.map(pill => {
-                        const isActive = activeFilter === pill;
-                        const hasValue =
-                            (pill === "Category" && category !== "") ||
-                            (pill === "Lab" && labId !== "");
+            {/* Filter pills */}
+            <div className={styles.pills}>
+                {FILTER_PILLS.map(pill => {
+                    const isActive = activeFilter === pill;
+                    const hasValue =
+                        (pill === "Category" && category !== "") ||
+                        (pill === "Lab" && labId !== "");
 
-                        return (
-                            <button
-                                key={pill}
-                                onClick={() =>
-                                    setActiveFilter(isActive ? null : pill)
-                                }
-                                className={`${styles.pill} ${isActive || hasValue ? styles["pill--active"] : ""}`}
-                            >
-                                {pill}
-                            </button>
-                        );
-                    })}
-                </div>
+                    return (
+                        <button
+                            key={pill}
+                            onClick={() =>
+                                setActiveFilter(isActive ? null : pill)
+                            }
+                            className={`${styles.pill} ${isActive || hasValue ? styles["pill--active"] : ""}`}
+                        >
+                            {pill}
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Category dropdown */}

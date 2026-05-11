@@ -149,18 +149,6 @@ export function ListingDetails({ contactEmail, listing }: ListingDetailsProps) {
                         <span>Back to Market Place</span>
                     </Link>
                 </div>
-  return (
-    <main className={styles.pageShell}>
-      <section className={styles.page}>
-        <div className={styles.topBar}>
-          {/* PROPERLY LINK TO MARKETPLACE PAGE LATER */}
-          <Link className={styles.backLink} href="/marketplace">
-            <span className={styles.backIcon} aria-hidden="true">
-              ←
-            </span>
-            <span>Back to Market Place</span>
-          </Link>
-        </div>
 
                 <div className={styles.contentGrid}>
                     {/* LEFT-SIDE PICTURES */}
