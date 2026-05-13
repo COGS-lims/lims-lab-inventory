@@ -5,6 +5,8 @@ import { Listing } from "@/models/Listing";
 import { ListingHeader } from "./ListingHeader";
 import { ContactModal } from "./ContactModal";
 import styles from "./listing-view.module.css";
+import CopurchaseLabInput from "@/components/copurchase/CopurchaseLabInput";
+import CopurchaseInvite from "@/components/copurchase/CopurchaseInvite";
 
 interface ListingDetailsProps {
   contactEmail: string;
@@ -98,14 +100,17 @@ export function ListingDetails({ contactEmail, listing }: ListingDetailsProps) {
   const [activeImage, setActiveImage] = useState(imageUrls[0]);
   const [quantity, setQuantity] = useState(1);
 
+  const [copurchaseStep, setCopurchaseStep] = useState<
+    "closed" | "lab" | "invite"
+  >("closed");
+  const [selectedLab, setSelectedLab] = useState("");
+
   function increaseQuantity() {
-    setQuantity((quantity) =>
-      Math.min(listing.quantityAvailable, quantity + 1)
-    );
+    setQuantity(quantity => Math.min(listing.quantityAvailable, quantity + 1));
   }
 
   function decreaseQuantity() {
-    setQuantity((quantity) => Math.max(1, quantity - 1));
+    setQuantity(quantity => Math.max(1, quantity - 1));
   }
 
   const listingMeta = [
@@ -230,9 +235,14 @@ export function ListingDetails({ contactEmail, listing }: ListingDetailsProps) {
               </div>
 
               <div className={styles.actionRow}>
-                <button className={styles.secondaryAction} type="button">
+                <button
+                  className={styles.secondaryAction}
+                  onClick={() => setCopurchaseStep("lab")}
+                  type="button"
+                >
                   Co-Purchase
                 </button>
+
                 <button
                   className={styles.primaryAction}
                   type="button"
@@ -246,7 +256,7 @@ export function ListingDetails({ contactEmail, listing }: ListingDetailsProps) {
                 <h2 className={styles.panelTitle}>Potential Hazards</h2>
                 <div className={styles.hazardGrid}>
                   {listing.hazardTags.length > 0 ? (
-                    listing.hazardTags.map((hazard) => (
+                    listing.hazardTags.map(hazard => (
                       <span
                         key={hazard}
                         className={`${styles.hazardTag} ${getHazardTone(hazard)}`}
@@ -274,7 +284,7 @@ export function ListingDetails({ contactEmail, listing }: ListingDetailsProps) {
             </div>
 
             <div className={styles.metaGrid}>
-              {listingMeta.map((item) => (
+              {listingMeta.map(item => (
                 <div className={styles.metaItem} key={item.label}>
                   <span className={styles.metaLabel}>{item.label}</span>
                   <span className={styles.metaValue}>{item.value}</span>
@@ -290,6 +300,28 @@ export function ListingDetails({ contactEmail, listing }: ListingDetailsProps) {
         listingName={listing.itemName}
         onClose={() => setIsContactModalOpen(false)}
       />
+      {copurchaseStep === "lab" ? (
+        <CopurchaseLabInput
+          onClose={() => setCopurchaseStep("closed")}
+          onSend={lab => {
+            setSelectedLab(lab);
+            setCopurchaseStep("invite");
+          }}
+        />
+      ) : null}
+      {copurchaseStep === "invite" ? (
+        <CopurchaseInvite
+          onClose={() => setCopurchaseStep("closed")}
+          onSend={email => {
+            console.log("Co-purchase invite sent:", {
+              lab: selectedLab,
+              email,
+              listingId: listing.id,
+            });
+            setCopurchaseStep("closed");
+          }}
+        />
+      ) : null}
     </main>
   );
 }
