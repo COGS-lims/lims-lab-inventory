@@ -10,7 +10,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [18, 19]  # For future compatibility with versions 18 and 19
+        node-version: [20, 22]
 
     steps:
     - name: Checkout code

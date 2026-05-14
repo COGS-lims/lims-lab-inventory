@@ -1,0 +1,111 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(8px);
+}
+
+.dialog {
+  position: relative;
+  width: min(100%, 31rem);
+  padding: 2rem;
+  border: 1px solid #000;
+  border-radius: 1.5rem;
+  background: #fff;
+}
+
+.closeButton {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(27, 20, 12, 0.08);
+  color: #261d12;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.kicker {
+  margin: 0 0 0.5rem;
+  color: #8a5b1c;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  color: #17120d;
+  font-size: 2rem;
+  line-height: 1.05;
+}
+
+.description {
+  margin: 0.85rem 0 0;
+  color: #4e4336;
+  line-height: 1.6;
+}
+
+.emailLink {
+  display: inline-flex;
+  margin-top: 1.2rem;
+  color: #0f5f90;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.footer {
+  display: flex;
+  gap: 0.85rem;
+  margin-top: 1.7rem;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0 1.1rem;
+  border-radius: 0.95rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.primaryButton {
+  border: 1px solid #000;
+  color: #fffaf3;
+  background: #ef5b1b;
+}
+
+.secondaryButton {
+  border: 1px solid #000;
+  color: #211b14;
+  background: #fff;
+}
+
+.closeButton:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+}
+
+@media (max-width: 640px) {
+  .dialog {
+    padding: 1.5rem;
+  }
+
+  .footer {
+    flex-direction: column;
+  }
+}
