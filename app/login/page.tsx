@@ -1,8 +1,9 @@
 "use client";
 import React, { useState } from 'react';
+import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 
-// --- Custom Icon Components (No installation needed!) ---
+// Icons
 const FlaskIcon = ({ size = 24, className = "" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
     <path d="M14 2v6a2 2 0 0 0 .245.96l5.51 10.08A2 2 0 0 1 18 22H6a2 2 0 0 1-1.755-2.96l5.51-10.08A2 2 0 0 0 10 8V2"/><path d="M6.453 15h11.094"/><path d="M8.5 2h7"/>
@@ -29,6 +30,7 @@ const EyeIcon = ({ className = "" }) => (
 // --------------------------------------------------------
 
 export default function SignInPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
 
   return (
@@ -123,6 +125,7 @@ export default function SignInPage() {
           <p className="text-[14px] text-gray-500 mb-3">Don't have an account?</p>
           <button
             type="button"
+            onClick={() => router.push("/signup")}
             className="w-full bg-white text-gray-800 font-medium py-2.5 rounded-md border border-gray-300 hover:bg-gray-50 transition-colors"
           >
             Create New Account
