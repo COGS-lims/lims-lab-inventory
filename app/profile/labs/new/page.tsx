@@ -1,6 +1,13 @@
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 
+const roleOptions = [
+    { value: "PI", label: "PI" },
+    { value: "LAB_MANAGER", label: "Lab Manager" },
+    { value: "RESEARCHER", label: "Researcher" },
+    { value: "VIEWER", label: "Viewer" },
+] as const;
+
 type LabOption = {
     id: string;
     name: string;
@@ -64,13 +71,24 @@ export default function AddLabAffiliationPage() {
                             >
                                 Lab Role
                             </label>
-                            <input
-                                id="labRole"
-                                name="labRole"
-                                type="text"
-                                placeholder="e.g., Research Assistant, Lab Manager"
-                                className="h-14 w-full rounded-xl border border-[#d9dee6] bg-white px-4 text-base text-[#111111] outline-none transition placeholder:text-[#98a0aa] focus:border-[#245f86] focus:ring-2 focus:ring-[#245f86]/20"
-                            />
+                            <div className="relative">
+                                <select
+                                    id="labRole"
+                                    name="labRole"
+                                    defaultValue=""
+                                    className="h-14 w-full appearance-none rounded-xl border border-[#d9dee6] bg-white px-4 text-base text-[#111111] outline-none transition focus:border-[#245f86] focus:ring-2 focus:ring-[#245f86]/20"
+                                >
+                                    <option value="" disabled>
+                                        Select a role
+                                    </option>
+                                    {roleOptions.map((role) => (
+                                        <option key={role.value} value={role.value}>
+                                            {role.label}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#7f8a95]" />
+                            </div>
                         </div>
 
                         <div className="space-y-3">
