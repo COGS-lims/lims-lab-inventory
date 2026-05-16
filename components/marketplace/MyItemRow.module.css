@@ -1,0 +1,46 @@
+.row {
+    background: #ffffff;
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.itemName {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.itemId {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    margin: 0;
+}
+
+.editButton {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    align-self: flex-start;
+    background: #f97316;
+    color: #ffffff;
+    font-size: 0.7rem;
+    font-weight: 500;
+    padding: 0.375rem 0.75rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.editButton:hover {
+    background: #ea6c0a;
+}
+
+.editIcon {
+    width: 0.75rem;
+    height: 0.75rem;
+}
