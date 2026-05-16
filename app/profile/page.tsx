@@ -8,36 +8,12 @@ import {
     UserRound,
 } from "lucide-react";
 
-type Affiliation = {
-    id: string;
-    labName: string;
-    role: string;
-    joined: string;
-};
-
-const profile = {
-    name: "Dr. Xu",
-    pronouns: "He/him",
-    bio: "Experienced principal investigator at a lab specializing in computational neuroscience. Our lab focuses on developing innovative techniques for analysis in computational neuroscience.",
-    email: "Xu@ucsd.edu",
-    phone: "(xxx) xxx-xxxx",
-    status: "Active",
-};
-
-const sampleAffiliations: Affiliation[] = [
-    {
-        id: "xu-comp-neuro",
-        labName: "Xu Computational Neuroscience Lab",
-        role: "Principal Investigator (PI)",
-        joined: "March 2026",
-    },
-    {
-        id: "cognitive-systems-core",
-        labName: "Cognitive Systems Core",
-        role: "Lab Advisor",
-        joined: "January 2025",
-    },
-];
+import {
+    Affiliation,
+    loadProfileAffiliations,
+    profileSeed,
+    sampleAffiliations,
+} from "./profile-data";
 
 function InfoCard({
     icon,
@@ -143,15 +119,18 @@ export default async function ProfilePage({
     searchParams?: Promise<{ labs?: string }>;
 }>) {
     const resolvedParams = searchParams ? await searchParams : undefined;
-    const affiliations =
-        resolvedParams?.labs === "empty" ? [] : sampleAffiliations;
+    const affiliations = resolvedParams?.labs === "empty"
+        ? []
+        : process.env.DATABASE_URL
+            ? await loadProfileAffiliations()
+            : sampleAffiliations;
 
     return (
         <main className="min-h-screen bg-[#f7f6f2] text-[#111111]">
             <div className="border-b border-[#ece4bd] bg-gradient-to-r from-[#f9f2c5] via-[#f7f3d5] to-[#f8f1c9]">
                 <div className="mx-auto flex h-[70px] w-full max-w-[1512px] items-center px-7 sm:px-10">
                     <Link
-                        href="/"
+                        href="/marketplace"
                         className="inline-flex items-center gap-6 text-lg font-semibold transition-transform hover:-translate-x-0.5 sm:text-[22px]"
                     >
                         <ArrowLeft className="h-7 w-7" />
@@ -176,11 +155,11 @@ export default async function ProfilePage({
 
                             <div className="max-w-4xl pt-2 sm:pt-4 lg:pt-[18px]">
                                 <h1 className="text-5xl font-semibold tracking-[-0.03em] text-[#101010] sm:text-6xl lg:text-[58px]">
-                                    {profile.name}
+                                    {profileSeed.name}
                                 </h1>
-                                <p className="mt-3 text-2xl font-semibold text-[#9b9b9f]">{profile.pronouns}</p>
+                                <p className="mt-3 text-2xl font-semibold text-[#9b9b9f]">{profileSeed.pronouns}</p>
                                 <p className="mt-8 max-w-[820px] text-lg leading-8 text-[#202020] sm:text-xl">
-                                    {profile.bio}
+                                    {profileSeed.bio}
                                 </p>
                             </div>
                         </div>
@@ -193,8 +172,8 @@ export default async function ProfilePage({
                         title="Contact Information"
                     >
                         <div className="space-y-8">
-                            <InfoRow label="Email address" value={profile.email} />
-                            <InfoRow label="Phone number" value={profile.phone} />
+                            <InfoRow label="Email address" value={profileSeed.email} />
+                            <InfoRow label="Phone number" value={profileSeed.phone} />
                         </div>
                     </InfoCard>
 
@@ -203,7 +182,7 @@ export default async function ProfilePage({
 
                 <div className="flex justify-end">
                     <div className="rounded-full border border-[#d2d8de] bg-white px-4 py-2 text-sm font-medium uppercase tracking-[0.18em] text-[#245f86] shadow-sm">
-                        {profile.status}
+                        {profileSeed.status}
                     </div>
                 </div>
             </div>
