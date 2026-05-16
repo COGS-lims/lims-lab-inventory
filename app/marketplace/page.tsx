@@ -86,8 +86,7 @@ export default function MarketplacePage() {
     }
 
     function handleEditProfile() {
-        console.log("Edit profile");
-        // TODO: navigate to profile page or open modal
+        router.push("/profile");
     }
 
     return (
