@@ -11,7 +11,7 @@ export interface ILabMembership {
 
 // shape of a user document in mongodb
 export interface IUser extends Document {
-    ucsdId: string; // ucsd pid
+    ucsdId?: string; // ucsd pid
     email: string; // ucsd email
     name: {
         first: string;
@@ -42,7 +42,7 @@ export interface IUser extends Document {
 // mongoose schema to valid the data
 const userSchema = new Schema<IUser>({
 
-    ucsdId: { type: String, required: true, unique: true }, // ucsd pid
+    ucsdId: { type: String, required: false, unique: true, sparse: true }, // ucsd pid optional since we can't get it from googe
     email: { type: String, required: true, unique: true, trim: true, lowercase: true,
         match:[/^\S+@ucsd\.edu$/, "Must be a valid UCSD email (@ucsd.edu)"],
     }, // ucsd email
@@ -56,7 +56,7 @@ const userSchema = new Schema<IUser>({
         enum: ["PI", "LAB_MANAGER", "RESEARCHER", "VIEWER"],
         required: true,
     },
-    
+
     // each entry represents membership in one lab
 
     labs: [
