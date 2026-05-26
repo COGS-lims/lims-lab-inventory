@@ -13,7 +13,8 @@ const ROLE_PERMISSIONS: Record<Role, string[]> = {
         "transfer:approve",
         "payment:approve",
         "lab:manage_users",
-        "inventory:view"
+        "inventory:view",
+        "listing:create"
     ],
     LAB_MANAGER: [
         "inventory:create",
@@ -21,7 +22,8 @@ const ROLE_PERMISSIONS: Record<Role, string[]> = {
         "inventory:set_threshold",
         "transfer:request",
         "lab:manage_users",
-        "inventory:view"
+        "inventory:view",
+        "listing:create"
     ],
     RESEARCHER: [
         "inventory:view",
