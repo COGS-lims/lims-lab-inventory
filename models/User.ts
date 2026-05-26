@@ -30,9 +30,11 @@ export interface IUser extends Document {
         lastReviewedAt: Date;
     };
     profile: {
-        title: string;
-        department: string;
-        phone: string;
+        title?: string;
+        department?: string;
+        phone?: string;
+        pronouns?: string;
+        description?: string;
     }
     status: Status;
     createdAt: Date;
@@ -86,6 +88,8 @@ const userSchema = new Schema<IUser>({
         title: { type: String },
         department: { type: String },
         phone: { type: String },
+        pronouns: { type: String },
+        description: { type: String },
     },
     status: {
         type: String,

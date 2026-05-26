@@ -14,10 +14,13 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { createUser, getUserByEmail, getUsers } from "@/services/user";
 
-// Validation for new-user creation. ucsdId is optional because Google OAuth
-// can't give us a real PID — users can fill it in later from their profile.
+// Validation for new-user creation. ucsdId is required and must be unique
+// (Google OAuth doesn't give us a real PID, so users enter it at signup).
 const userCreateSchema = z.object({
-    ucsdId: z.string().min(1).optional(),
+    ucsdId: z
+        .string()
+        .trim()
+        .regex(/^[A-Za-z][0-9]{8}$/, "UCSD PID must be 1 letter + 8 digits"),
     email: z
         .string()
         .email()
@@ -27,6 +30,11 @@ const userCreateSchema = z.object({
         last: z.string().min(1),
     }),
     role: z.enum(["PI", "LAB_MANAGER", "RESEARCHER", "VIEWER"]),
+    profile: z.object({
+        pronouns: z.string().max(50).optional(),
+        phone: z.string().max(30).optional(),
+        description: z.string().min(1, "Description is required").max(500),
+    }),
 });
 
 /**
@@ -98,6 +106,22 @@ export async function POST(request: Request) {
         });
         return NextResponse.json(newUser, { status: 201 });
     } catch (err) {
+        // Surface duplicate-key collisions (e.g. ucsdId already taken) as 409
+        // instead of a generic 500.
+        if (
+            typeof err === "object" &&
+            err !== null &&
+            "code" in err &&
+            (err as { code?: number }).code === 11000
+        ) {
+            const field =
+                Object.keys((err as { keyPattern?: Record<string, unknown> })
+                    .keyPattern ?? {})[0] ?? "field";
+            return NextResponse.json(
+                { message: `That ${field} is already in use.` },
+                { status: 409 },
+            );
+        }
         console.error(err);
         return NextResponse.json(
             { message: "Internal server error" },

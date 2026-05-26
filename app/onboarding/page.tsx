@@ -39,7 +39,11 @@ export default function OnboardingPage() {
 
     const [firstName, setFirstName] = useState("");
     const [lastName, setLastName] = useState("");
+    const [ucsdId, setUcsdId] = useState("");
     const [role, setRole] = useState<Role | "">("");
+    const [pronouns, setPronouns] = useState("");
+    const [phone, setPhone] = useState("");
+    const [description, setDescription] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -95,6 +99,14 @@ export default function OnboardingPage() {
             setError("First and last name are required.");
             return;
         }
+        if (!/^[A-Za-z][0-9]{8}$/.test(ucsdId.trim())) {
+            setError("UCSD PID must be 1 letter followed by 8 digits (e.g. A12345678).");
+            return;
+        }
+        if (!description.trim()) {
+            setError("Please add a short description about yourself.");
+            return;
+        }
 
         setSubmitting(true);
         try {
@@ -103,11 +115,17 @@ export default function OnboardingPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     email: session.user.email,
+                    ucsdId: ucsdId.trim().toUpperCase(),
                     name: {
                         first: firstName.trim(),
                         last: lastName.trim(),
                     },
                     role,
+                    profile: {
+                        pronouns: pronouns.trim(),
+                        phone: phone.trim(),
+                        description: description.trim(),
+                    },
                 }),
             });
 
@@ -189,6 +207,25 @@ export default function OnboardingPage() {
 
                     <div className="space-y-1.5">
                         <label className="block text-sm font-medium text-gray-700">
+                            UCSD PID
+                        </label>
+                        <input
+                            type="text"
+                            value={ucsdId}
+                            onChange={(e) =>
+                                setUcsdId(e.target.value.toUpperCase())
+                            }
+                            placeholder="A12345678"
+                            maxLength={9}
+                            required
+                            pattern="[A-Za-z][0-9]{8}"
+                            title="1 letter followed by 8 digits"
+                            className="block w-full px-3 py-2.5 rounded-md bg-[#f3f4f6] text-gray-900 focus:bg-white focus:ring-2 focus:ring-[#ea7032]/50 outline-none transition-colors sm:text-sm font-mono tracking-wider"
+                        />
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="block text-sm font-medium text-gray-700">
                             Your role in the lab
                         </label>
                         <select
@@ -206,6 +243,59 @@ export default function OnboardingPage() {
                                 </option>
                             ))}
                         </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                            <label className="block text-sm font-medium text-gray-700">
+                                Pronouns{" "}
+                                <span className="text-gray-400 font-normal">
+                                    (optional)
+                                </span>
+                            </label>
+                            <input
+                                type="text"
+                                value={pronouns}
+                                onChange={(e) => setPronouns(e.target.value)}
+                                placeholder="she/her, he/him, they/them…"
+                                maxLength={50}
+                                className="block w-full px-3 py-2.5 rounded-md bg-[#f3f4f6] text-gray-900 focus:bg-white focus:ring-2 focus:ring-[#ea7032]/50 outline-none transition-colors sm:text-sm"
+                            />
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="block text-sm font-medium text-gray-700">
+                                Phone number{" "}
+                                <span className="text-gray-400 font-normal">
+                                    (optional)
+                                </span>
+                            </label>
+                            <input
+                                type="tel"
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                placeholder="(555) 123-4567"
+                                maxLength={30}
+                                className="block w-full px-3 py-2.5 rounded-md bg-[#f3f4f6] text-gray-900 focus:bg-white focus:ring-2 focus:ring-[#ea7032]/50 outline-none transition-colors sm:text-sm"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="block text-sm font-medium text-gray-700">
+                            About you
+                        </label>
+                        <textarea
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            placeholder="A short description — research interests, what you work on, etc."
+                            maxLength={500}
+                            rows={3}
+                            required
+                            className="block w-full px-3 py-2.5 rounded-md bg-[#f3f4f6] text-gray-900 focus:bg-white focus:ring-2 focus:ring-[#ea7032]/50 outline-none transition-colors sm:text-sm resize-none"
+                        />
+                        <p className="text-[11px] text-gray-400 text-right">
+                            {description.length}/500
+                        </p>
                     </div>
 
                     {error ? (
