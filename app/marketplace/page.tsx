@@ -3,35 +3,18 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useInventory } from "@/app/hooks/useInventory";
+import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 import ItemGrid from "@/components/marketplace/ItemGrid";
 import MarketplaceFilters, {
     FilterState,
 } from "@/components/marketplace/MarketplaceFilters";
 import ProfileSidebar from "@/components/marketplace/ProfileSidebar";
 import type { Item } from "@/app/types/inventory";
-import type { User } from "@/app/types/user";
 import styles from "./page.module.css";
-
-// Mock user, replce with real later
-const MOCK_USER: User = {
-    id: "mock-user-id",
-    ucsdId: "A12345678",
-    email: "shengxu@ucsd.edu",
-    name: { first: "Dr. Xu", last: "" },
-    role: "PI",
-    labs: [{ labId: "lab-001", role: "PI" }],
-    notificationPreferences: { email: true, sms: false, inApp: true },
-    safety: { trainingCompleted: [], clearanceLevel: "", lastReviewedAt: "" },
-    profile: { title: "Professor", department: "Chemistry", phone: "" },
-    status: "ACTIVE",
-    createdAt: "",
-    lastLoginAt: "",
-};
-// ─────────────────────────────────────────────────────────────────────────────
 
 export default function MarketplacePage() {
     const router = useRouter();
-    const currentUser = MOCK_USER; // swap with real auth
+    const { user: currentUser, isLoading: userLoading, error: userError } = useCurrentUser();
 
     const { items, isLoading, error } = useInventory();
 
@@ -61,7 +44,7 @@ export default function MarketplacePage() {
     }, [items, filters]);
 
     // Items belonging to the current user's labs (for sidebar)
-    const myLabIds = new Set(currentUser.labs.map(l => l.labId));
+    const myLabIds = new Set((currentUser?.labs ?? []).map(l => l.labId));
     const myItems = items.filter(item => myLabIds.has(item.labId));
 
     // Derive lab options for the filter dropdown from available items
@@ -87,6 +70,14 @@ export default function MarketplacePage() {
 
     function handleEditProfile() {
         router.push("/profile");
+    }
+
+    if (userLoading) {
+        return <div className={styles.page}>Loading...</div>;
+    }
+
+    if (userError || !currentUser) {
+        return <div className={styles.page}>Failed to load user session.</div>;
     }
 
     return (

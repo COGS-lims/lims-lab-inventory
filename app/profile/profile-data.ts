@@ -78,13 +78,20 @@ export async function getOrCreateDemoProfileUser() {
     });
 }
 
-export async function loadProfileAffiliations() {
+export async function loadProfileAffiliations(userEmail?: string) {
     if (!process.env.DATABASE_URL) {
         return sampleAffiliations;
     }
 
     try {
-        const user = await getOrCreateDemoProfileUser();
+        let user;
+        if (userEmail) {
+            await connectToDatabase();
+            user = await User.findOne({ email: userEmail.toLowerCase() }).exec();
+        }
+        if (!user) {
+            user = await getOrCreateDemoProfileUser();
+        }
         const rows = await UserLab.find({ user: user._id })
             .populate("lab")
             .sort({ joinedAt: -1 })

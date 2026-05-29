@@ -11,9 +11,6 @@ const storage = new Storage({
   },
 });
 
-const bucketName = process.env.GOOGLE_CLOUD_BUCKET_NAME!;
-const bucket = storage.bucket(bucketName);
-
 /**
  * Upload a publicly accessible image file to GCS
  * @param file image as raw bytes of data
@@ -24,9 +21,13 @@ export async function uploadImage(
   file: Buffer,
   originalFilename: string
 ): Promise<string> {
+  const bucketName = process.env.GOOGLE_CLOUD_BUCKET_NAME;
+  if (!bucketName) throw new Error("GOOGLE_CLOUD_BUCKET_NAME is not configured.");
+
+  const bucket = storage.bucket(bucketName);
   const timestamp = Date.now();
-  const safeFilename = originalFilename.replace(/\s/g, "_"); // replace spaces
-  const uniqueFilename = `listings/${timestamp}-${safeFilename}`; // unique by timestamp
+  const safeFilename = originalFilename.replace(/\s/g, "_");
+  const uniqueFilename = `listings/${timestamp}-${safeFilename}`;
 
   const blob = bucket.file(uniqueFilename);
 

@@ -111,15 +111,7 @@ async function GET(request: Request) {
  * @returns JSON response with success message and req body echoed
  */
 async function POST(request: Request) {
-    let { allowed, reason } = await getSession("listing:create");
-    if (!allowed) {
-        return NextResponse.json(
-            { success: false, message: reason },
-            { status: 403 }
-        );
-    }
-
-    ({ allowed, reason } = await getSession("listing:create"));
+    const { allowed, reason } = await getSession("listing:create");
     if (!allowed) {
         return NextResponse.json(
             { success: false, message: reason },
@@ -164,7 +156,7 @@ async function POST(request: Request) {
         result.expiryDate = new Date(result.expiryDate as unknown as string);
     }
 
-    const imageFiles = formData.getAll("images") as File[];
+    const imageFiles = (formData.getAll("images") as File[]).filter(f => f.size > 0);
 
     const parsedBody = listingValidationSchema.safeParse(result);
     if (!parsedBody.success) {
@@ -177,19 +169,20 @@ async function POST(request: Request) {
         );
     }
 
-    if (imageFiles.length > 0) {
-        const imageUrls: string[] = [];
-        for (const imageFile of imageFiles) {
-            const buffer = Buffer.from(await imageFile.arrayBuffer());
-            const imageUrl = await uploadImage(buffer, imageFile.name);
-            imageUrls.push(imageUrl);
-        }
-        result.imageUrls = imageUrls;
-    }
-
     try {
+        if (imageFiles.length > 0) {
+            const imageUrls: string[] = [];
+            for (const imageFile of imageFiles) {
+                const buffer = Buffer.from(await imageFile.arrayBuffer());
+                const imageUrl = await uploadImage(buffer, imageFile.name);
+                imageUrls.push(imageUrl);
+            }
+            result.imageUrls = imageUrls;
+        }
+
         const listingData = {
             ...parsedBody.data,
+            ...(result.imageUrls ? { imageUrls: result.imageUrls } : {}),
             createdAt: new Date(),
         } as ListingInput;
         const listing = await addListing(listingData);
@@ -205,9 +198,9 @@ async function POST(request: Request) {
             }
         );
     } catch (error: any) {
+        console.error("[POST /api/listings] error:", error);
         if (error.code === 11000) {
             return NextResponse.json(
-                // don't send mongo's error - exposes design info
                 { success: false, message: "This listing already exists." },
                 { status: 409 }
             );

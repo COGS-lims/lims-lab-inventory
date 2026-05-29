@@ -17,6 +17,7 @@
         "test:ci": "jest --forceExit"
     },
     "dependencies": {
+        "@google-cloud/storage": "^7.19.0",
         "@playwright/test": "^1.49.0",
         "@radix-ui/react-slot": "^1.1.0",
         "class-variance-authority": "^0.7.1",
