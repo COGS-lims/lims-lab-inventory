@@ -3,7 +3,10 @@ import { connectToDatabase } from "@/lib/mongoose";
 import { z } from "zod";
 import { getFilteredListings, addListing } from "@/services/listings/listings";
 import { ListingInput } from "@/models/Listing";
-import { uploadImage } from "@/lib/googleCloud";
+import {
+    getValidImageFiles,
+    uploadListingImages,
+} from "@/lib/listing-images";
 import { getSession } from "@/lib/rbac";
 
 const listingValidationSchema = z.object({
@@ -143,7 +146,7 @@ async function POST(request: Request) {
     const hazardTags: string[] = [];
 
     for (const [key, value] of entries) {
-        if (key === "image") continue;
+        if (key === "image" || key === "images") continue;
         if (key === "hazardTags") {
             hazardTags.push(value as string);
         } else {
@@ -164,8 +167,6 @@ async function POST(request: Request) {
         result.expiryDate = new Date(result.expiryDate as unknown as string);
     }
 
-    const imageFiles = formData.getAll("images") as File[];
-
     const parsedBody = listingValidationSchema.safeParse(result);
     if (!parsedBody.success) {
         return NextResponse.json(
@@ -177,19 +178,17 @@ async function POST(request: Request) {
         );
     }
 
-    if (imageFiles.length > 0) {
-        const imageUrls: string[] = [];
-        for (const imageFile of imageFiles) {
-            const buffer = Buffer.from(await imageFile.arrayBuffer());
-            const imageUrl = await uploadImage(buffer, imageFile.name);
-            imageUrls.push(imageUrl);
-        }
-        result.imageUrls = imageUrls;
-    }
-
     try {
+        // Keep parsed defaults unless real image files were provided.
+        let imageUrls = parsedBody.data.imageUrls ?? [];
+        const imageFiles = getValidImageFiles(formData);
+        if (imageFiles.length > 0) {
+            imageUrls = await uploadListingImages(imageFiles);
+        }
+
         const listingData = {
             ...parsedBody.data,
+            imageUrls,
             createdAt: new Date(),
         } as ListingInput;
         const listing = await addListing(listingData);

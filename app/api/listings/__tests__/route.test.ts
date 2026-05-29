@@ -167,7 +167,7 @@ describe("API: Successful Responses", () => {
       const formData = new FormData();
       Object.entries(listingData).forEach(([key, value]) => {
         if (Array.isArray(value)) {
-          value.forEach((item) => formData.append(key, item));
+          value.forEach(item => formData.append(key, item));
         } else {
           formData.append(key, String(value));
         }
@@ -212,6 +212,58 @@ describe("API: Successful Responses", () => {
           price: 50,
           expiryDate: new Date(listingData.expiryDate),
           hazardTags: ["Physical", "Chemical"],
+        })
+      );
+    });
+
+    test("creates listing when form includes an empty images part", async () => {
+      const date = new Date();
+      const minimalData = {
+        itemName: "Flask",
+        itemId: "item1",
+        labId: "lab1",
+        quantityAvailable: 5,
+        status: "ACTIVE",
+        condition: "New",
+      };
+
+      const mockReturnedData = {
+        ...minimalData,
+        id: "123",
+        createdAt: date,
+        imageUrls: [],
+        labName: "",
+        labLocation: "",
+        description: "",
+        price: 0,
+        hazardTags: [],
+      };
+
+      const formData = new FormData();
+      formData.append(
+        "images",
+        new File([], "", { type: "application/octet-stream" })
+      );
+      Object.entries(minimalData).forEach(([key, value]) => {
+        formData.append(key, String(value));
+      });
+
+      (connectToDatabase as jest.Mock).mockResolvedValue({});
+      (addListing as jest.Mock).mockResolvedValue(mockReturnedData);
+
+      const req = new Request("http://localhost/api/listings", {
+        method: "POST",
+        body: formData,
+      });
+
+      const res = await POST(req);
+      const body = await res.json();
+
+      expect(res.status).toBe(201);
+      expect(body.success).toBe(true);
+      expect(addListing).toHaveBeenCalledWith(
+        expect.objectContaining({
+          imageUrls: [],
         })
       );
     });
@@ -305,7 +357,7 @@ describe("API: Successful Responses", () => {
       Object.entries(listingData).forEach(([key, value]) => {
         if (value === null || value === undefined) return;
         if (Array.isArray(value)) {
-          value.forEach((item) => formData.append(key, item));
+          value.forEach(item => formData.append(key, item));
         } else {
           formData.append(key, String(value));
         }

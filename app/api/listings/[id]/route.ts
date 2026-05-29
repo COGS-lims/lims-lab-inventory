@@ -7,7 +7,10 @@ import {
   updateListing,
 } from "@/services/listings/listings";
 import { ListingInput } from "@/models/Listing";
-import { uploadImage } from "@/lib/googleCloud";
+import {
+  getValidImageFiles,
+  uploadListingImages,
+} from "@/lib/listing-images";
 import { getSession } from "@/lib/rbac";
 
 const objectIdSchema = z
@@ -127,9 +130,13 @@ async function PUT(request: Request, { params }: { params: { id: string } }) {
   }
 
   const formData = await request.formData();
-  const updateData: Partial<ListingInput> = {
-    ...Object.fromEntries(formData.entries()),
-  };
+  // Build a plain object from non-file fields before validation.
+  const textEntries: [string, FormDataEntryValue][] = [];
+  for (const [key, value] of formData.entries()) {
+    if (key === "image" || key === "images" || key === "hazardTags") continue;
+    textEntries.push([key, value]);
+  }
+  const updateData: Partial<ListingInput> = Object.fromEntries(textEntries);
 
   // handle array fields
   const hazardTags = formData.getAll("hazardTags");
@@ -152,9 +159,6 @@ async function PUT(request: Request, { params }: { params: { id: string } }) {
     );
   }
 
-  // handle image uploads if provided
-  const imageFiles = formData.getAll("images") as File[];
-
   const parsedRequest = listingValidationSchema.safeParse(updateData);
   if (!parsedRequest.success) {
     return NextResponse.json(
@@ -166,23 +170,15 @@ async function PUT(request: Request, { params }: { params: { id: string } }) {
     );
   }
 
-  if (imageFiles.length > 0) {
-    const imageUrls: string[] = [];
-
-    for (const imageFile of imageFiles) {
-      const buffer = Buffer.from(await imageFile.arrayBuffer());
-      const imageUrl = await uploadImage(buffer, imageFile.name);
-      imageUrls.push(imageUrl);
+  try {
+    // Only replace image URLs when real files were uploaded in this request.
+    const updatePayload = { ...parsedRequest.data };
+    const imageFiles = getValidImageFiles(formData);
+    if (imageFiles.length > 0) {
+      updatePayload.imageUrls = await uploadListingImages(imageFiles);
     }
 
-    updateData.imageUrls = imageUrls;
-  }
-
-  try {
-    const updatedListing = await updateListing(
-      parsedId.data,
-      parsedRequest.data
-    );
+    const updatedListing = await updateListing(parsedId.data, updatePayload);
 
     if (!updatedListing) {
       return NextResponse.json(

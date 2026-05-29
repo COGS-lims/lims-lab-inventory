@@ -37,14 +37,29 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
     );
   }
 
+  /**
+   * Submits listing form data while omitting empty file inputs.
+   * This prevents browsers from sending a blank `images` part that could
+   * trigger unnecessary image-upload logic on the API.
+   */
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSubmitting(true);
     setErrorMessage(null);
 
-    const formData = new FormData(event.currentTarget);
+    const form = event.currentTarget;
+    const formData = new FormData(form);
 
+    formData.delete("images");
     formData.delete("hazardTags");
+    const fileInput = form.elements.namedItem("images") as HTMLInputElement | null;
+    if (fileInput?.files) {
+      Array.from(fileInput.files).forEach((file) => {
+        if (file.size > 0) {
+          formData.append("images", file);
+        }
+      });
+    }
     hazards.forEach((tag) => formData.append("hazardTags", tag));
 
     const endpoint = isEditMode ? `/api/listings/${listingId}` : "/api/listings";
