@@ -1,14 +1,13 @@
 "use client";
 
-import { Item } from "@/app/types/inventory";
+import type { Listing } from "@/models/Listing";
 import ItemCard from "./ItemCard";
 import styles from "./ItemGrid.module.css";
 
 type Props = {
-    items: Item[];
+    items: Listing[];
     isLoading: boolean;
     error: string | null;
-    /** Optional map of labId -> display name for the "Lab owner" label */
     labNames?: Record<string, string>;
 };
 

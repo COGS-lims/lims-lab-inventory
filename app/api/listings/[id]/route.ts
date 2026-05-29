@@ -40,7 +40,7 @@ const listingValidationSchema = z
  * ex req: GET /listings/001 HTTP/1.1
  * @returns the listing as a JS object in a JSON response
  */
-async function GET(request: Request, { params }: { params: { id: string } }) {
+async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { allowed, reason } = await getSession("inventory:view");
   if (!allowed) {
     return NextResponse.json(
@@ -61,7 +61,8 @@ async function GET(request: Request, { params }: { params: { id: string } }) {
     );
   }
 
-  const parsedId = objectIdSchema.safeParse(params.id);
+  const { id } = await params;
+  const parsedId = objectIdSchema.safeParse(id);
   if (!parsedId.success) {
     return NextResponse.json(
       {
@@ -94,7 +95,7 @@ async function GET(request: Request, { params }: { params: { id: string } }) {
  * @param id the ID of the listing to get as part of the path params
  * @returns the updated listing as a JS object in a JSON response
  */
-async function PUT(request: Request, { params }: { params: { id: string } }) {
+async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { allowed, reason } = await getSession("inventory:update");
   if (!allowed) {
     return NextResponse.json(
@@ -115,7 +116,8 @@ async function PUT(request: Request, { params }: { params: { id: string } }) {
     );
   }
 
-  const parsedId = objectIdSchema.safeParse(params.id);
+  const { id } = await params;
+  const parsedId = objectIdSchema.safeParse(id);
   if (!parsedId.success) {
     return NextResponse.json(
       {
@@ -127,9 +129,9 @@ async function PUT(request: Request, { params }: { params: { id: string } }) {
   }
 
   const formData = await request.formData();
-  const updateData: Partial<ListingInput> = {
-    ...Object.fromEntries(formData.entries()),
-  };
+  const updateData: Partial<ListingInput> = Object.fromEntries(
+    Array.from(formData.entries()).filter(([, v]) => !(v instanceof File))
+  ) as Partial<ListingInput>;
 
   // handle array fields
   const hazardTags = formData.getAll("hazardTags");
@@ -147,13 +149,16 @@ async function PUT(request: Request, { params }: { params: { id: string } }) {
   }
 
   if (updateData.expiryDate !== undefined) {
-    updateData.expiryDate = new Date(
-      updateData.expiryDate as unknown as string
-    );
+    const raw = updateData.expiryDate as unknown as string;
+    if (raw === "") {
+      delete updateData.expiryDate;
+    } else {
+      updateData.expiryDate = new Date(raw);
+    }
   }
 
   // handle image uploads if provided
-  const imageFiles = formData.getAll("images") as File[];
+  const imageFiles = (formData.getAll("images") as File[]).filter(f => f.size > 0);
 
   const parsedRequest = listingValidationSchema.safeParse(updateData);
   if (!parsedRequest.success) {
@@ -166,7 +171,12 @@ async function PUT(request: Request, { params }: { params: { id: string } }) {
     );
   }
 
-  if (imageFiles.length > 0) {
+  const gcsReady = !!(
+    process.env.GOOGLE_CLOUD_BUCKET_NAME &&
+    process.env.GOOGLE_CLOUD_CLIENT_EMAIL &&
+    process.env.GOOGLE_CLOUD_PROJECT_ID
+  );
+  if (imageFiles.length > 0 && gcsReady) {
     const imageUrls: string[] = [];
 
     for (const imageFile of imageFiles) {
@@ -220,9 +230,9 @@ async function PUT(request: Request, { params }: { params: { id: string } }) {
  */
 async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { allowed, reason } = await getSession("inventory:delete");
+  const { allowed, user, reason } = await getSession("inventory:delete");
   if (!allowed) {
     return NextResponse.json(
       {
@@ -242,7 +252,8 @@ async function DELETE(
     );
   }
 
-  const parsedId = objectIdSchema.safeParse(params.id);
+  const { id } = await params;
+  const parsedId = objectIdSchema.safeParse(id);
   if (!parsedId.success) {
     return NextResponse.json(
       {
@@ -254,16 +265,23 @@ async function DELETE(
   }
 
   try {
-    const listing = await deleteListing(parsedId.data);
+    const listing = await getListing(parsedId.data);
     if (!listing) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Listing not found",
-        },
+        { success: false, message: "Listing not found" },
         { status: 404 }
       );
     }
+
+    const userLabIds = new Set((user!.labs ?? []).map((l: any) => String(l.labId)));
+    if (!userLabIds.has(listing.labId)) {
+      return NextResponse.json(
+        { success: false, message: "You can only delete listings from your own lab." },
+        { status: 403 }
+      );
+    }
+
+    await deleteListing(parsedId.data);
     return NextResponse.json(
       {
         success: true,

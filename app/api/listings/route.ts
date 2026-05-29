@@ -170,7 +170,12 @@ async function POST(request: Request) {
     }
 
     try {
-        if (imageFiles.length > 0) {
+        const gcsReady = !!(
+            process.env.GOOGLE_CLOUD_BUCKET_NAME &&
+            process.env.GOOGLE_CLOUD_CLIENT_EMAIL &&
+            process.env.GOOGLE_CLOUD_PROJECT_ID
+        );
+        if (imageFiles.length > 0 && gcsReady) {
             const imageUrls: string[] = [];
             for (const imageFile of imageFiles) {
                 const buffer = Buffer.from(await imageFile.arrayBuffer());

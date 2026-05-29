@@ -1,17 +1,6 @@
 import { Storage } from "@google-cloud/storage";
 
 /**
- * create the authenticated client for interacting with GCS
- */
-const storage = new Storage({
-  projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
-  credentials: {
-    client_email: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_CLOUD_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-  },
-});
-
-/**
  * Upload a publicly accessible image file to GCS
  * @param file image as raw bytes of data
  * @param originalFilename original name of the image file
@@ -21,8 +10,19 @@ export async function uploadImage(
   file: Buffer,
   originalFilename: string
 ): Promise<string> {
+  const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
+  const clientEmail = process.env.GOOGLE_CLOUD_CLIENT_EMAIL;
+  const privateKey = process.env.GOOGLE_CLOUD_PRIVATE_KEY?.replace(/\\n/g, "\n");
   const bucketName = process.env.GOOGLE_CLOUD_BUCKET_NAME;
-  if (!bucketName) throw new Error("GOOGLE_CLOUD_BUCKET_NAME is not configured.");
+
+  if (!projectId || !clientEmail || !privateKey || !bucketName) {
+    throw new Error("Google Cloud Storage is not fully configured.");
+  }
+
+  const storage = new Storage({
+    projectId,
+    credentials: { client_email: clientEmail, private_key: privateKey },
+  });
 
   const bucket = storage.bucket(bucketName);
   const timestamp = Date.now();

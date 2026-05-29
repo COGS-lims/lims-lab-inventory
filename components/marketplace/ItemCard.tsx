@@ -1,36 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { Item } from "@/app/types/inventory";
+import type { Listing } from "@/models/Listing";
 import styles from "./ItemCard.module.css";
 
 type Props = {
-    item: Item;
+    item: Listing;
     labOwnerName?: string;
 };
 
-type ConditionKey = "new" | "used" | "expired";
-
 const CONDITION_CONFIG: Record<
-    ConditionKey,
+    string,
     { label: string; badgeClass: string }
 > = {
-    new: { label: "Condition: New", badgeClass: styles["badge--new"] },
-    used: { label: "Condition: Used", badgeClass: styles["badge--used"] },
-    expired: {
-        label: "Condition: Expired",
-        badgeClass: styles["badge--expired"],
-    },
+    New:  { label: "Condition: New",  badgeClass: styles["badge--new"] },
+    Good: { label: "Condition: Good", badgeClass: styles["badge--new"] },
+    Fair: { label: "Condition: Fair", badgeClass: styles["badge--used"] },
+    Poor: { label: "Condition: Poor", badgeClass: styles["badge--expired"] },
 };
 
 export default function ItemCard({ item, labOwnerName }: Props) {
-    // Heuristic until a condition field is added to the schema
-    const conditionKey: ConditionKey = item.quantity === 0 ? "expired" : "new";
-    const condition = CONDITION_CONFIG[conditionKey];
+    const condition = CONDITION_CONFIG[item.condition] ?? CONDITION_CONFIG["Good"];
+    const labDisplay = labOwnerName ?? item.labName ?? item.labId;
 
     return (
         <Link href={`/listings/${item.id}`} className={styles.card} style={{ textDecoration: "none", color: "inherit" }}>
-            {/* Image placeholder for now */}
             <div className={styles.imageWrapper}>
                 <span className={styles.imagePlaceholder}>[image here]</span>
                 <span className={`${styles.badge} ${condition.badgeClass}`}>
@@ -38,19 +32,19 @@ export default function ItemCard({ item, labOwnerName }: Props) {
                 </span>
             </div>
 
-            {/* Details */}
             <div className={styles.details}>
                 <div>
-                    <p className={styles.itemName}>{item.name}</p>
+                    <p className={styles.itemName}>{item.itemName}</p>
                     <p className={styles.itemMeta}>
-                        Qty: {item.quantity} · {item.category}
+                        Qty: {item.quantityAvailable}
+                        {item.price != null && item.price > 0 ? ` · $${item.price.toFixed(2)}` : ""}
                     </p>
                 </div>
 
-                {labOwnerName && (
+                {labDisplay && (
                     <div className={styles.labOwner}>
-                        <p className={styles.labOwnerLabel}>Lab owner:</p>
-                        <p className={styles.labOwnerName}>{labOwnerName}</p>
+                        <p className={styles.labOwnerLabel}>Lab:</p>
+                        <p className={styles.labOwnerName}>{labDisplay}</p>
                     </div>
                 )}
             </div>

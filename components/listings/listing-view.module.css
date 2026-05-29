@@ -13,11 +13,34 @@
 .topBar {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   min-height: 3.5rem;
   margin-bottom: 2rem;
   padding: 0 0.9rem;
   border: 1px solid #d8d2c6;
   background: #fffdf7;
+}
+
+.deleteButton {
+  padding: 0.4rem 1rem;
+  border: 1px solid #c0392b;
+  border-radius: 6px;
+  background: transparent;
+  color: #c0392b;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.deleteButton:hover:not(:disabled) {
+  background: #c0392b;
+  color: #fff;
+}
+
+.deleteButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .backLink {

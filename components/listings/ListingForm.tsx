@@ -1,9 +1,12 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 import type { Listing } from "@/models/Listing";
 import styles from "./listing-form.module.css";
+
+type LabOption = { id: string; name: string };
 
 interface ListingFormProps {
   initialValues?: Partial<Listing>;
@@ -21,6 +24,53 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [hazards, setHazards] = useState<string[]>(initialValues?.hazardTags ?? []);
+  const [labOptions, setLabOptions] = useState<LabOption[]>([]);
+  const [selectedLabId, setSelectedLabId] = useState(initialValues?.labId ?? "");
+
+  const { user: currentUser } = useCurrentUser();
+  const [deleting, setDeleting] = useState(false);
+
+  const canDelete =
+    isEditMode &&
+    Boolean(listingId) &&
+    (currentUser?.labs ?? []).some(l => l.labId === (initialValues?.labId ?? selectedLabId));
+
+  async function handleDelete() {
+    if (!confirm(`Delete "${initialValues?.itemName ?? "this listing"}"? This cannot be undone.`)) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/listings/${listingId}`, { method: "DELETE" });
+      if (!res.ok) {
+        const json = await res.json();
+        setErrorMessage(json.message ?? "Failed to delete listing.");
+        setDeleting(false);
+        return;
+      }
+      router.push("/marketplace");
+    } catch {
+      setErrorMessage("Failed to delete listing.");
+      setDeleting(false);
+    }
+  }
+
+  useEffect(() => {
+    async function fetchUserLabs() {
+      if (!currentUser?.labs?.length) return;
+      try {
+        const res = await fetch("/api/lab?limit=100");
+        const json = await res.json();
+        if (!res.ok) return;
+        const allLabs: LabOption[] = (json.data ?? []).map((l: any) => ({ id: l.id, name: l.name }));
+        const userLabIds = new Set(currentUser.labs.map(l => l.labId));
+        setLabOptions(allLabs.filter(l => userLabIds.has(l.id)));
+      } catch {
+        // ignore
+      }
+    }
+    fetchUserLabs();
+  }, [currentUser]);
+
+  const selectedLabName = labOptions.find(l => l.id === selectedLabId)?.name ?? initialValues?.labName ?? "";
 
   const expiryDefault = useMemo(() => {
     if (!initialValues?.expiryDate) return "";
@@ -136,15 +186,27 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
               </label>
 
               <label className={styles.fieldRow}>
-                <span className={styles.fieldLabel}>Lab ID:</span>
-                <input className={styles.textInput} name="labId" defaultValue={initialValues?.labId ?? ""} required />
+                <span className={styles.fieldLabel}>Lab:</span>
+                <select
+                  className={styles.textInput}
+                  name="labId"
+                  value={selectedLabId}
+                  onChange={e => setSelectedLabId(e.target.value)}
+                  required
+                >
+                  <option value="" disabled>Select your lab</option>
+                  {labOptions.map(lab => (
+                    <option key={lab.id} value={lab.id}>{lab.name}</option>
+                  ))}
+                </select>
+                <input type="hidden" name="labName" value={selectedLabName} />
               </label>
             </div>
 
             <div className={styles.twoColumnGrid}>
               <label className={styles.fieldRow}>
                 <span className={styles.fieldLabel}>Lab name:</span>
-                <input className={styles.textInput} name="labName" defaultValue={initialValues?.labName ?? ""} />
+                <input className={styles.textInput} value={selectedLabName} readOnly tabIndex={-1} />
               </label>
 
               <label className={styles.fieldRow}>
@@ -218,23 +280,35 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
           {errorMessage ? <p className={styles.errorText}>{errorMessage}</p> : null}
 
           <footer className={styles.buttonRow}>
-            <button
-              type="button"
-              className={styles.cancelButton}
-              onClick={() => router.back()}
-              disabled={submitting}
-            >
-              Cancel
-            </button>
-            <button type="submit" className={styles.submitButton} disabled={submitting}>
-              {submitting
-                ? isEditMode
-                  ? "Updating..."
-                  : "Creating..."
-                : isEditMode
-                  ? "Update listing"
-                  : "List item on marketplace"}
-            </button>
+            {canDelete && (
+              <button
+                type="button"
+                className={styles.deleteButton}
+                onClick={handleDelete}
+                disabled={deleting || submitting}
+              >
+                {deleting ? "Deleting…" : "Delete listing"}
+              </button>
+            )}
+            <div className={styles.buttonRowRight}>
+              <button
+                type="button"
+                className={styles.cancelButton}
+                onClick={() => router.back()}
+                disabled={submitting || deleting}
+              >
+                Cancel
+              </button>
+              <button type="submit" className={styles.submitButton} disabled={submitting || deleting}>
+                {submitting
+                  ? isEditMode
+                    ? "Updating..."
+                    : "Creating..."
+                  : isEditMode
+                    ? "Update listing"
+                    : "List item on marketplace"}
+              </button>
+            </div>
           </footer>
         </form>
       </section>
