@@ -15,29 +15,42 @@ const bucketName = process.env.GOOGLE_CLOUD_BUCKET_NAME!;
 const bucket = storage.bucket(bucketName);
 
 /**
- * Upload a publicly accessible image file to GCS
- * @param file image as raw bytes of data
- * @param originalFilename original name of the image file
- * @returns a promise that resolves to the public URL of the uploaded image
+ * Infers a MIME type from filename extension for object metadata.
+ * Defaults to JPEG when extension is missing or unknown.
+ */
+function inferContentType(filename: string): string {
+  const lower = filename.toLowerCase();
+  if (lower.endsWith(".png")) return "image/png";
+  if (lower.endsWith(".webp")) return "image/webp";
+  if (lower.endsWith(".gif")) return "image/gif";
+  return "image/jpeg";
+}
+
+/**
+ * Upload an image file to GCS.
+ * Public access is expected via bucket-level IAM (uniform bucket-level access);
+ * do not call per-object ACL APIs such as makePublic().
  */
 export async function uploadImage(
   file: Buffer,
   originalFilename: string
 ): Promise<string> {
+  if (file.length === 0) {
+    throw new Error("Cannot upload an empty file.");
+  }
+
   const timestamp = Date.now();
-  const safeFilename = originalFilename.replace(/\s/g, "_"); // replace spaces
-  const uniqueFilename = `listings/${timestamp}-${safeFilename}`; // unique by timestamp
+  const safeFilename =
+    originalFilename.replace(/\s/g, "_").trim() || "image";
+  const uniqueFilename = `listings/${timestamp}-${safeFilename}`;
 
   const blob = bucket.file(uniqueFilename);
 
   await blob.save(file, {
     metadata: {
-      contentType: "image/jpeg",
+      contentType: inferContentType(safeFilename),
     },
   });
-
-  // Make the file publicly accessible
-  await blob.makePublic();
 
   return `https://storage.googleapis.com/${bucketName}/${uniqueFilename}`;
 }
