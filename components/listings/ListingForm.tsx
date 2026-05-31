@@ -23,9 +23,13 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [hazards, setHazards] = useState<string[]>(initialValues?.hazardTags ?? []);
+  const [hazards, setHazards] = useState<string[]>(
+    initialValues?.hazardTags ?? []
+  );
   const [labOptions, setLabOptions] = useState<LabOption[]>([]);
-  const [selectedLabId, setSelectedLabId] = useState(initialValues?.labId ?? "");
+  const [selectedLabId, setSelectedLabId] = useState(
+    initialValues?.labId ?? ""
+  );
 
   const { user: currentUser } = useCurrentUser();
   const [deleting, setDeleting] = useState(false);
@@ -33,13 +37,22 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
   const canDelete =
     isEditMode &&
     Boolean(listingId) &&
-    (currentUser?.labs ?? []).some(l => l.labId === (initialValues?.labId ?? selectedLabId));
+    (currentUser?.labs ?? []).some(
+      l => l.labId === (initialValues?.labId ?? selectedLabId)
+    );
 
   async function handleDelete() {
-    if (!confirm(`Delete "${initialValues?.itemName ?? "this listing"}"? This cannot be undone.`)) return;
+    if (
+      !confirm(
+        `Delete "${initialValues?.itemName ?? "this listing"}"? This cannot be undone.`
+      )
+    )
+      return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/listings/${listingId}`, { method: "DELETE" });
+      const res = await fetch(`/api/listings/${listingId}`, {
+        method: "DELETE",
+      });
       if (!res.ok) {
         const json = await res.json();
         setErrorMessage(json.message ?? "Failed to delete listing.");
@@ -60,7 +73,10 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
         const res = await fetch("/api/lab?limit=100");
         const json = await res.json();
         if (!res.ok) return;
-        const allLabs: LabOption[] = (json.data ?? []).map((l: any) => ({ id: l.id, name: l.name }));
+        const allLabs: LabOption[] = (json.data ?? []).map((l: any) => ({
+          id: l.id,
+          name: l.name,
+        }));
         const userLabIds = new Set(currentUser.labs.map(l => l.labId));
         setLabOptions(allLabs.filter(l => userLabIds.has(l.id)));
       } catch {
@@ -70,7 +86,10 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
     fetchUserLabs();
   }, [currentUser]);
 
-  const selectedLabName = labOptions.find(l => l.id === selectedLabId)?.name ?? initialValues?.labName ?? "";
+  const selectedLabName =
+    labOptions.find(l => l.id === selectedLabId)?.name ??
+    initialValues?.labName ??
+    "";
 
   const expiryDefault = useMemo(() => {
     if (!initialValues?.expiryDate) return "";
@@ -80,9 +99,9 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
   }, [initialValues?.expiryDate]);
 
   function toggleHazard(tag: string) {
-    setHazards((previous) =>
+    setHazards(previous =>
       previous.includes(tag)
-        ? previous.filter((value) => value !== tag)
+        ? previous.filter(value => value !== tag)
         : [...previous, tag]
     );
   }
@@ -95,9 +114,11 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
     const formData = new FormData(event.currentTarget);
 
     formData.delete("hazardTags");
-    hazards.forEach((tag) => formData.append("hazardTags", tag));
+    hazards.forEach(tag => formData.append("hazardTags", tag));
 
-    const endpoint = isEditMode ? `/api/listings/${listingId}` : "/api/listings";
+    const endpoint = isEditMode
+      ? `/api/listings/${listingId}`
+      : "/api/listings";
     const method = isEditMode ? "PUT" : "POST";
 
     try {
@@ -158,14 +179,24 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
           </h2>
         </header>
 
-        <form className={styles.formLayout} onSubmit={handleSubmit} encType="multipart/form-data">
+        <form
+          className={styles.formLayout}
+          onSubmit={handleSubmit}
+          encType="multipart/form-data"
+        >
           <section className={styles.photoBlock}>
             <div className={styles.photoUploader}>
               <label className={styles.photoTitle}>Item Photo</label>
               <div className={styles.photoDropzone}>
                 <span className={styles.uploadText}>Upload Photo</span>
               </div>
-              <input className={styles.fileInput} name="images" type="file" accept="image/*" multiple />
+              <input
+                className={styles.fileInput}
+                name="images"
+                type="file"
+                accept="image/*"
+                multiple
+              />
             </div>
             <div className={styles.photoHelp}>
               <p>Upload a clear photo of the item.</p>
@@ -176,13 +207,23 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
           <section className={styles.fieldsPanel}>
             <label className={styles.fieldRow}>
               <span className={styles.fieldLabel}>Item name:</span>
-              <input className={styles.textInput} name="itemName" defaultValue={initialValues?.itemName ?? ""} required />
+              <input
+                className={styles.textInput}
+                name="itemName"
+                defaultValue={initialValues?.itemName ?? ""}
+                required
+              />
             </label>
 
             <div className={styles.twoColumnGrid}>
               <label className={styles.fieldRow}>
                 <span className={styles.fieldLabel}>Item ID:</span>
-                <input className={styles.textInput} name="itemId" defaultValue={initialValues?.itemId ?? ""} required />
+                <input
+                  className={styles.textInput}
+                  name="itemId"
+                  defaultValue={initialValues?.itemId ?? ""}
+                  required
+                />
               </label>
 
               <label className={styles.fieldRow}>
@@ -194,9 +235,13 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
                   onChange={e => setSelectedLabId(e.target.value)}
                   required
                 >
-                  <option value="" disabled>Select your lab</option>
+                  <option value="" disabled>
+                    Select your lab
+                  </option>
                   {labOptions.map(lab => (
-                    <option key={lab.id} value={lab.id}>{lab.name}</option>
+                    <option key={lab.id} value={lab.id}>
+                      {lab.name}
+                    </option>
                   ))}
                 </select>
                 <input type="hidden" name="labName" value={selectedLabName} />
@@ -206,42 +251,77 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
             <div className={styles.twoColumnGrid}>
               <label className={styles.fieldRow}>
                 <span className={styles.fieldLabel}>Lab name:</span>
-                <input className={styles.textInput} value={selectedLabName} readOnly tabIndex={-1} />
+                <input
+                  className={styles.textInput}
+                  value={selectedLabName}
+                  readOnly
+                  tabIndex={-1}
+                />
               </label>
 
               <label className={styles.fieldRow}>
                 <span className={styles.fieldLabel}>Lab location:</span>
-                <input className={styles.textInput} name="labLocation" defaultValue={initialValues?.labLocation ?? ""} />
+                <input
+                  className={styles.textInput}
+                  name="labLocation"
+                  defaultValue={initialValues?.labLocation ?? ""}
+                />
               </label>
             </div>
 
             <div className={styles.twoColumnGrid}>
               <label className={styles.fieldRow}>
                 <span className={styles.fieldLabel}>Expiry date:</span>
-                <input className={styles.textInput} name="expiryDate" type="date" defaultValue={expiryDefault} />
+                <input
+                  className={styles.textInput}
+                  name="expiryDate"
+                  type="date"
+                  defaultValue={expiryDefault}
+                />
               </label>
 
               <label className={styles.fieldRow}>
                 <span className={styles.fieldLabel}>Quantity available:</span>
-                <input className={styles.textInput} name="quantityAvailable" type="number" min={1} defaultValue={initialValues?.quantityAvailable ?? 1} required />
+                <input
+                  className={styles.textInput}
+                  name="quantityAvailable"
+                  type="number"
+                  min={1}
+                  defaultValue={initialValues?.quantityAvailable ?? 1}
+                  required
+                />
               </label>
             </div>
 
             <div className={styles.twoColumnGrid}>
               <label className={styles.fieldRow}>
                 <span className={styles.fieldLabel}>Condition:</span>
-                <select className={styles.textInput} name="condition" defaultValue={initialValues?.condition ?? "Good"} required>
-                  {CONDITION_OPTIONS.map((option) => (
-                    <option key={option} value={option}>{option}</option>
+                <select
+                  className={styles.textInput}
+                  name="condition"
+                  defaultValue={initialValues?.condition ?? "Good"}
+                  required
+                >
+                  {CONDITION_OPTIONS.map(option => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
                   ))}
                 </select>
               </label>
 
               <label className={styles.fieldRow}>
                 <span className={styles.fieldLabel}>Status:</span>
-                <select className={styles.textInput} name="status" defaultValue={initialValues?.status ?? "ACTIVE"} required>
-                  {STATUS_OPTIONS.map((option) => (
-                    <option key={option} value={option}>{option}</option>
+                <select
+                  className={styles.textInput}
+                  name="status"
+                  defaultValue={initialValues?.status ?? "ACTIVE"}
+                  required
+                >
+                  {STATUS_OPTIONS.map(option => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
                   ))}
                 </select>
               </label>
@@ -249,12 +329,24 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
 
             <label className={styles.fieldRow}>
               <span className={styles.fieldLabel}>Description:</span>
-              <textarea className={styles.textInput} name="description" rows={4} defaultValue={initialValues?.description ?? ""} />
+              <textarea
+                className={styles.textInput}
+                name="description"
+                rows={4}
+                defaultValue={initialValues?.description ?? ""}
+              />
             </label>
 
             <label className={styles.fieldRow}>
               <span className={styles.fieldLabel}>Price:</span>
-              <input className={styles.textInput} name="price" type="number" min={0} step="0.01" defaultValue={initialValues?.price ?? 0} />
+              <input
+                className={styles.textInput}
+                name="price"
+                type="number"
+                min={0}
+                step="0.01"
+                defaultValue={initialValues?.price ?? 0}
+              />
             </label>
           </section>
 
@@ -264,7 +356,7 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
               Select all applicable hazard warnings for this item.
             </p>
             <div className={styles.hazardGrid}>
-              {HAZARD_OPTIONS.map((tag) => (
+              {HAZARD_OPTIONS.map(tag => (
                 <label key={tag} className={styles.hazardChip}>
                   <input
                     type="checkbox"
@@ -277,7 +369,9 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
             </div>
           </section>
 
-          {errorMessage ? <p className={styles.errorText}>{errorMessage}</p> : null}
+          {errorMessage ? (
+            <p className={styles.errorText}>{errorMessage}</p>
+          ) : null}
 
           <footer className={styles.buttonRow}>
             {canDelete && (
@@ -299,14 +393,18 @@ export function ListingForm({ initialValues, listingId }: ListingFormProps) {
               >
                 Cancel
               </button>
-              <button type="submit" className={styles.submitButton} disabled={submitting || deleting}>
+              <button
+                type="submit"
+                className={styles.submitButton}
+                disabled={submitting || deleting}
+              >
                 {submitting
                   ? isEditMode
                     ? "Updating..."
                     : "Creating..."
                   : isEditMode
                     ? "Update listing"
-                    : "List item on marketplace"}
+                    : "List item"}
               </button>
             </div>
           </footer>

@@ -19,6 +19,7 @@ const ROLE_PERMISSIONS: Record<Role, string[]> = {
     LAB_MANAGER: [
         "inventory:create",
         "inventory:update",
+        "inventory:delete",
         "inventory:set_threshold",
         "transfer:request",
         "lab:manage_users",
