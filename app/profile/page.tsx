@@ -160,7 +160,7 @@ export default async function ProfilePage({
                 </div>
             </div>
 
-            <div className="mx-auto flex w-full max-w-[1512px] flex-col gap-[76px] px-6 py-[58px] sm:px-10 lg:px-[87px] lg:py-[58px]">
+            <div className="mx-auto flex w-full max-w-[1512px] flex-col gap-[40px] px-6 py-[58px] sm:px-10 lg:px-[87px] lg:py-[58px]">
                 <section className="min-h-[446px] overflow-hidden rounded-[25px] border-2 border-[#202020] bg-[#fbfbfd] shadow-[0_12px_24px_rgba(15,23,42,0.10)]">
                     <div className="h-24 bg-[#245f86] sm:h-32" />
                     <div className="px-6 pb-8 pt-0 sm:px-10 sm:pb-10 lg:px-[52px] lg:pb-[54px]">
@@ -191,7 +191,7 @@ export default async function ProfilePage({
                     </div>
                 </section>
 
-                <div className="grid gap-8 lg:grid-cols-[603px_600px] lg:justify-between lg:gap-0">
+                <div className="grid gap-8 lg:grid-cols-[640px_640px] lg:justify-between lg:gap-0">
                     <InfoCard
                         icon={<Mail className="h-10 w-10" strokeWidth={1.8} />}
                         title="Contact Information"

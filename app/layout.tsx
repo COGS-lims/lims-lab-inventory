@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 
 import Providers from "@/components/Providers";
 import "./globals.css";
+import LoadingScreen from "@/components/LoadingScreen";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -28,7 +29,7 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-                <Providers>{children}</Providers>
+                <Providers><LoadingScreen>{children}</LoadingScreen></Providers>
             </body>
         </html>
     );
