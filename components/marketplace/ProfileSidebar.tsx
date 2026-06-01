@@ -2,6 +2,7 @@
 
 import { User } from "@/app/types/user";
 import type { Listing } from "@/models/Listing";
+import { signOut } from "next-auth/react";
 import MyItemRow from "./MyItemRow";
 import styles from "./ProfileSidebar.module.css";
 
@@ -54,6 +55,12 @@ export default function ProfileSidebar({
                     className={styles.editProfileBtn}
                 >
                     Edit profile
+                </button>
+                <button
+                    onClick={() => signOut({ callbackUrl: "/login" })}
+                    className={styles.logoutBtn}
+                >
+                    Log out
                 </button>
             </div>
 
