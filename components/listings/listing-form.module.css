@@ -244,9 +244,43 @@
 }
 
 .buttonRow {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 1rem;
+}
+
+.buttonRowRight {
+  display: flex;
+  gap: 1rem;
+  margin-left: auto;
+}
+
+.buttonRowRight .cancelButton,
+.buttonRowRight .submitButton {
+  width: 120px;
+}
+
+.deleteButton {
+  min-height: 48px;
+  padding: 0 1.25rem;
+  border-radius: 13px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #c0392b;
+  color: #fff;
+  border: none;
+  transition: background 0.15s;
+}
+
+.deleteButton:hover:not(:disabled) {
+  background: #a93226;
+}
+
+.deleteButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .cancelButton,

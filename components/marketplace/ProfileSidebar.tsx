@@ -1,14 +1,14 @@
 "use client";
 
 import { User } from "@/app/types/user";
-import { Item } from "@/app/types/inventory";
+import type { Listing } from "@/models/Listing";
 import MyItemRow from "./MyItemRow";
 import styles from "./ProfileSidebar.module.css";
 
 type Props = {
     user: User;
-    myItems: Item[];
-    onEditItem: (item: Item) => void;
+    myItems: Listing[];
+    onEditItem: (item: Listing) => void;
     onListNewItem: () => void;
     onEditProfile: () => void;
 };

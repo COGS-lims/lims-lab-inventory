@@ -7,6 +7,7 @@ import { connectToDatabase } from "@/lib/mongoose";
 import LabModel from "@/models/Lab";
 import UserLab from "@/models/UserLab";
 import { User } from "@/models/User";
+import { auth } from "@/auth";
 import { getOrCreateDemoProfileUser } from "@/app/profile/profile-data";
 
 const roleOptions = [
@@ -99,7 +100,12 @@ async function addExistingLabAction(formData: FormData) {
         return;
     }
 
-    const user = await getOrCreateDemoProfileUser();
+    const session = await auth();
+    const sessionEmail = session?.user?.email;
+    const user = sessionEmail
+        ? await User.findOne({ email: sessionEmail.toLowerCase() }).exec() ?? await getOrCreateDemoProfileUser()
+        : await getOrCreateDemoProfileUser();
+
     const joinedAt = dateJoinedInput ? new Date(dateJoinedInput) : new Date();
 
     await UserLab.findOneAndUpdate(

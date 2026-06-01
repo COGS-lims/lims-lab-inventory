@@ -1,23 +1,26 @@
 import { Storage } from "@google-cloud/storage";
 
-/**
- * create the authenticated client for interacting with GCS
- */
+const projectId = process.env.GOOGLE_CLOUD_PROJECT_ID;
+const clientEmail = process.env.GOOGLE_CLOUD_CLIENT_EMAIL;
+const privateKey = process.env.GOOGLE_CLOUD_PRIVATE_KEY?.replace(/\\n/g, "\n");
+const bucketName = process.env.GOOGLE_CLOUD_BUCKET_NAME;
+
+if (!projectId || !clientEmail || !privateKey || !bucketName) {
+  console.warn(
+    "Google Cloud Storage env vars are not fully configured — image uploads will fail."
+  );
+}
+
 const storage = new Storage({
-  projectId: process.env.GOOGLE_CLOUD_PROJECT_ID,
+  projectId,
   credentials: {
-    client_email: process.env.GOOGLE_CLOUD_CLIENT_EMAIL,
-    private_key: process.env.GOOGLE_CLOUD_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    client_email: clientEmail,
+    private_key: privateKey,
   },
 });
 
-const bucketName = process.env.GOOGLE_CLOUD_BUCKET_NAME!;
-const bucket = storage.bucket(bucketName);
+const bucket = storage.bucket(bucketName!);
 
-/**
- * Infers a MIME type from filename extension for object metadata.
- * Defaults to JPEG when extension is missing or unknown.
- */
 function inferContentType(filename: string): string {
   const lower = filename.toLowerCase();
   if (lower.endsWith(".png")) return "image/png";
@@ -28,8 +31,7 @@ function inferContentType(filename: string): string {
 
 /**
  * Upload an image file to GCS.
- * Public access is expected via bucket-level IAM (uniform bucket-level access);
- * do not call per-object ACL APIs such as makePublic().
+ * Public access is expected via bucket-level IAM (uniform bucket-level access).
  */
 export async function uploadImage(
   file: Buffer,

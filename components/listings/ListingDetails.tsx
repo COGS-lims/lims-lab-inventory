@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Listing } from "@/models/Listing";
 import { ListingHeader } from "./ListingHeader";
 import { ContactModal } from "./ContactModal";
+import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 import styles from "./listing-view.module.css";
 import CopurchaseLabInput from "@/components/copurchase/CopurchaseLabInput";
 import CopurchaseInvite from "@/components/copurchase/CopurchaseInvite";
@@ -96,14 +98,32 @@ export function ListingDetails({ contactEmail, listing }: ListingDetailsProps) {
   const imageUrls =
     listing.imageUrls.length > 0 ? listing.imageUrls : ["", "", ""];
 
+  const router = useRouter();
+  const { user: currentUser } = useCurrentUser();
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
   const [activeImage, setActiveImage] = useState(imageUrls[0]);
   const [quantity, setQuantity] = useState(1);
+  const [deleting, setDeleting] = useState(false);
 
-  const [copurchaseStep, setCopurchaseStep] = useState<
-    "closed" | "lab" | "invite"
-  >("closed");
-  const [selectedLab, setSelectedLab] = useState("");
+  const canDelete = (currentUser?.labs ?? []).some(l => l.labId === listing.labId);
+
+  async function handleDelete() {
+    if (!confirm(`Delete "${listing.itemName}"? This cannot be undone.`)) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/listings/${listing.id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const json = await res.json();
+        alert(json.message ?? "Failed to delete listing.");
+        setDeleting(false);
+        return;
+      }
+      router.push("/marketplace");
+    } catch {
+      alert("Failed to delete listing.");
+      setDeleting(false);
+    }
+  }
 
   function increaseQuantity() {
     setQuantity(quantity => Math.min(listing.quantityAvailable, quantity + 1));
@@ -144,15 +164,23 @@ export function ListingDetails({ contactEmail, listing }: ListingDetailsProps) {
     <main className={styles.pageShell}>
       <section className={styles.page}>
         <div className={styles.topBar}>
-          {/* PROPERLY LINK TO MARKETPLACE PAGE LATER */}
           <Link className={styles.backLink} href="/marketplace">
             <span className={styles.backIcon} aria-hidden="true">
               ←
             </span>
             <span>Back to Market Place</span>
           </Link>
+          {canDelete && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              disabled={deleting}
+              className={styles.deleteButton}
+            >
+              {deleting ? "Deleting…" : "Delete listing"}
+            </button>
+          )}
         </div>
-
         <div className={styles.contentGrid}>
           {/* LEFT-SIDE PICTURES */}
           <section className={styles.galleryColumn}>
@@ -235,14 +263,9 @@ export function ListingDetails({ contactEmail, listing }: ListingDetailsProps) {
               </div>
 
               <div className={styles.actionRow}>
-                <button
-                  className={styles.secondaryAction}
-                  onClick={() => setCopurchaseStep("lab")}
-                  type="button"
-                >
+                <button className={styles.secondaryAction} type="button">
                   Co-Purchase
                 </button>
-
                 <button
                   className={styles.primaryAction}
                   type="button"
@@ -300,28 +323,6 @@ export function ListingDetails({ contactEmail, listing }: ListingDetailsProps) {
         listingName={listing.itemName}
         onClose={() => setIsContactModalOpen(false)}
       />
-      {copurchaseStep === "lab" ? (
-        <CopurchaseLabInput
-          onClose={() => setCopurchaseStep("closed")}
-          onSend={lab => {
-            setSelectedLab(lab);
-            setCopurchaseStep("invite");
-          }}
-        />
-      ) : null}
-      {copurchaseStep === "invite" ? (
-        <CopurchaseInvite
-          onClose={() => setCopurchaseStep("closed")}
-          onSend={email => {
-            console.log("Co-purchase invite sent:", {
-              lab: selectedLab,
-              email,
-              listingId: listing.id,
-            });
-            setCopurchaseStep("closed");
-          }}
-        />
-      ) : null}
     </main>
   );
 }

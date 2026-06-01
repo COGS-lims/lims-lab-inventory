@@ -10,7 +10,9 @@
     gap: 1.5rem;
     align-self: flex-start;
     position: sticky;
-    top: 1.5rem;
+    top: 1rem;
+    height: calc(100vh - 2rem);
+    overflow-y: auto;
 }
 
 /* Profile header */
@@ -139,4 +141,10 @@
 .listNewIcon {
     width: 1.25rem;
     height: 1.25rem;
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        display: none;
+    }
 }

@@ -114,15 +114,7 @@ async function GET(request: Request) {
  * @returns JSON response with success message and req body echoed
  */
 async function POST(request: Request) {
-    let { allowed, reason } = await getSession("listing:create");
-    if (!allowed) {
-        return NextResponse.json(
-            { success: false, message: reason },
-            { status: 403 }
-        );
-    }
-
-    ({ allowed, reason } = await getSession("listing:create"));
+    const { allowed, reason } = await getSession("listing:create");
     if (!allowed) {
         return NextResponse.json(
             { success: false, message: reason },
@@ -204,9 +196,9 @@ async function POST(request: Request) {
             }
         );
     } catch (error: any) {
+        console.error("[POST /api/listings] error:", error);
         if (error.code === 11000) {
             return NextResponse.json(
-                // don't send mongo's error - exposes design info
                 { success: false, message: "This listing already exists." },
                 { status: 409 }
             );

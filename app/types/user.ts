@@ -29,9 +29,11 @@ export type User = {
         lastReviewedAt: string;
     };
     profile: {
-        title: string;
-        department: string;
-        phone: string;
+        title?: string;
+        department?: string;
+        phone?: string;
+        pronouns?: string;
+        description?: string;
     };
     status: Status;
     createdAt: string;

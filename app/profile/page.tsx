@@ -8,10 +8,11 @@ import {
     UserRound,
 } from "lucide-react";
 
+import { auth } from "@/auth";
+import { getUserByEmail } from "@/services/user";
 import {
     Affiliation,
     loadProfileAffiliations,
-    profileSeed,
     sampleAffiliations,
 } from "./profile-data";
 
@@ -113,17 +114,37 @@ function LabAffiliationsCard({
     );
 }
 
+const statusLabels: Record<string, string> = {
+    ACTIVE: "Active",
+    INACTIVE: "Inactive",
+    SUSPENDED: "Suspended",
+};
+
 export default async function ProfilePage({
     searchParams,
 }: Readonly<{
     searchParams?: Promise<{ labs?: string }>;
 }>) {
+    const session = await auth();
+    const currentUser = session?.user?.email
+        ? await getUserByEmail(session.user.email)
+        : null;
+
     const resolvedParams = searchParams ? await searchParams : undefined;
     const affiliations = resolvedParams?.labs === "empty"
         ? []
         : process.env.DATABASE_URL
-            ? await loadProfileAffiliations()
+            ? await loadProfileAffiliations(currentUser?.email)
             : sampleAffiliations;
+
+    const displayName = currentUser
+        ? `${currentUser.name.first} ${currentUser.name.last}`.trim()
+        : "Guest";
+    const pronouns = currentUser?.profile?.pronouns ?? "";
+    const bio = currentUser?.profile?.description ?? "";
+    const email = currentUser?.email ?? "";
+    const phone = currentUser?.profile?.phone ?? "";
+    const status = statusLabels[currentUser?.status ?? ""] ?? (currentUser?.status ?? "");
 
     return (
         <main className="min-h-screen bg-[#f7f6f2] text-[#111111]">
@@ -155,12 +176,16 @@ export default async function ProfilePage({
 
                             <div className="max-w-4xl pt-2 sm:pt-4 lg:pt-[18px]">
                                 <h1 className="text-5xl font-semibold tracking-[-0.03em] text-[#101010] sm:text-6xl lg:text-[58px]">
-                                    {profileSeed.name}
+                                    {displayName}
                                 </h1>
-                                <p className="mt-3 text-2xl font-semibold text-[#9b9b9f]">{profileSeed.pronouns}</p>
-                                <p className="mt-8 max-w-[820px] text-lg leading-8 text-[#202020] sm:text-xl">
-                                    {profileSeed.bio}
-                                </p>
+                                {pronouns && (
+                                    <p className="mt-3 text-2xl font-semibold text-[#9b9b9f]">{pronouns}</p>
+                                )}
+                                {bio && (
+                                    <p className="mt-8 max-w-[820px] text-lg leading-8 text-[#202020] sm:text-xl">
+                                        {bio}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -172,19 +197,24 @@ export default async function ProfilePage({
                         title="Contact Information"
                     >
                         <div className="space-y-8">
-                            <InfoRow label="Email address" value={profileSeed.email} />
-                            <InfoRow label="Phone number" value={profileSeed.phone} />
+                            {email && <InfoRow label="Email address" value={email} />}
+                            {phone && <InfoRow label="Phone number" value={phone} />}
+                            {!email && !phone && (
+                                <p className="text-sm text-[#8b8b8f]">No contact information on file.</p>
+                            )}
                         </div>
                     </InfoCard>
 
                     <LabAffiliationsCard affiliations={affiliations} />
                 </div>
 
-                <div className="flex justify-end">
-                    <div className="rounded-full border border-[#d2d8de] bg-white px-4 py-2 text-sm font-medium uppercase tracking-[0.18em] text-[#245f86] shadow-sm">
-                        {profileSeed.status}
+                {status && (
+                    <div className="flex justify-end">
+                        <div className="rounded-full border border-[#d2d8de] bg-white px-4 py-2 text-sm font-medium uppercase tracking-[0.18em] text-[#245f86] shadow-sm">
+                            {status}
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </main>
     );
