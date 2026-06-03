@@ -48,6 +48,7 @@ describe( "Lab API", () => {
           expect(data).toEqual(mockPayload);
         });
         it("should return 500 on server error", async () => {
+          const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
           // Mock the getLabs function to throw an error
           mockGetLab.mockRejectedValue(new Error("Database error"));
           // Create a mock request object
@@ -56,6 +57,8 @@ describe( "Lab API", () => {
           expect(response.status).toBe(500);
           const data = await response.json();
           expect(data).toEqual({ message: "Internal server error" });
+          expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(Error));
+          consoleErrorSpy.mockRestore();
         });
     });
     describe("POST /api/lab", () => {
