@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
     ArrowLeft,
     CalendarDays,
@@ -126,20 +127,26 @@ export default async function ProfilePage({
     searchParams?: Promise<{ labs?: string }>;
 }>) {
     const session = await auth();
-    const currentUser = session?.user?.email
-        ? await getUserByEmail(session.user.email)
-        : null;
+    const sessionEmail = session?.user?.email;
+
+    if (!sessionEmail) {
+        redirect("/login");
+    }
+
+    const currentUser = await getUserByEmail(sessionEmail);
+
+    if (!currentUser) {
+        redirect("/onboarding");
+    }
 
     const resolvedParams = searchParams ? await searchParams : undefined;
     const affiliations = resolvedParams?.labs === "empty"
         ? []
         : process.env.DATABASE_URL
-            ? await loadProfileAffiliations(currentUser?.email)
+            ? await loadProfileAffiliations(currentUser.email)
             : sampleAffiliations;
 
-    const displayName = currentUser
-        ? `${currentUser.name.first} ${currentUser.name.last}`.trim()
-        : "Guest";
+    const displayName = `${currentUser.name.first} ${currentUser.name.last}`.trim();
     const pronouns = currentUser?.profile?.pronouns ?? "";
     const bio = currentUser?.profile?.description ?? "";
     const email = currentUser?.email ?? "";
