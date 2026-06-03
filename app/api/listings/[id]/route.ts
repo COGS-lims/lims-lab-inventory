@@ -222,7 +222,7 @@ async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { allowed, user, reason } = await getSession("inventory:delete");
+  const { allowed, reason } = await getSession("inventory:delete");
   if (!allowed) {
     return NextResponse.json(
       {
@@ -255,23 +255,14 @@ async function DELETE(
   }
 
   try {
-    const listing = await getListing(parsedId.data);
-    if (!listing) {
+    const deleted = await deleteListing(parsedId.data);
+    if (!deleted) {
       return NextResponse.json(
         { success: false, message: "Listing not found" },
         { status: 404 }
       );
     }
 
-    const userLabIds = new Set((user!.labs ?? []).map((l: any) => String(l.labId)));
-    if (!userLabIds.has(listing.labId)) {
-      return NextResponse.json(
-        { success: false, message: "You can only delete listings from your own lab." },
-        { status: 403 }
-      );
-    }
-
-    await deleteListing(parsedId.data);
     return NextResponse.json(
       {
         success: true,
