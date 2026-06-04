@@ -1,6 +1,7 @@
 import { connectToDatabase } from "@/lib/mongoose";
 import UserLab from "@/models/UserLab";
 import { User } from "@/models/User";
+import "@/models/Lab";
 
 export type Affiliation = {
     id: string;
@@ -79,7 +80,8 @@ export async function loadProfileAffiliations(userEmail?: string) {
             role: roleLabels[row.role] ?? row.role,
             joined: formatJoined(row.joinedAt),
         }));
-    } catch {
-        return sampleAffiliations;
+    } catch (error) {
+        console.error("[profile] Failed to load lab affiliations:", error);
+        return [] as Affiliation[];
     }
 }
