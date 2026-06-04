@@ -1,0 +1,209 @@
+.overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(8px);
+  }
+  
+  .dialog {
+    position: relative;
+    width: min(100%, 31rem);
+    padding: 2rem;
+    border: 1px solid #000;
+    border-radius: 1.5rem;
+    background: #fff;
+  }
+  
+  .closeButton {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(27, 20, 12, 0.08);
+    color: #261d12;
+    font-size: 1.4rem;
+    cursor: pointer;
+  }
+  
+  .closeButton:focus {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+  }
+  
+  .kicker {
+    margin: 0 0 0.5rem;
+    color: #8a5b1c;
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  
+  .title {
+    margin: 0;
+    color: #17120d;
+    font-size: 2rem;
+    line-height: 1.05;
+  }
+  
+  .description {
+    margin: 0.85rem 0 0;
+    color: #4e4336;
+    line-height: 1.6;
+  }
+  
+  .fieldLabel {
+    display: block;
+    margin: 1.4rem 0 0.5rem;
+    color: #796b59;
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  
+  .inputRow {
+    display: flex;
+    gap: 0.6rem;
+  }
+  
+  .emailInput {
+    flex: 1;
+    min-width: 0;
+    height: 3rem;
+    padding: 0 0.9rem;
+    border: 1px solid #000;
+    border-radius: 0.85rem;
+    background: #fff;
+    color: #17120d;
+    font-size: 1rem;
+  }
+  
+  .emailInput::placeholder {
+    color: #a89880;
+  }
+  
+  .emailInput:focus {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
+  }
+  
+  .addButton {
+    height: 3rem;
+    padding: 0 1.1rem;
+    border: 1px solid #000;
+    border-radius: 0.85rem;
+    background: #2f6286;
+    color: #fff;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  
+  .addButton:focus {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+  }
+  
+  .chipList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid #d8d2c6;
+    border-radius: 999px;
+    background: #f4f0e8;
+  }
+  
+  .chipEmail {
+    color: #2a2218;
+    font-size: 0.9rem;
+  }
+  
+  .chipRemove {
+    border: 0;
+    background: transparent;
+    color: #796b59;
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0;
+  }
+  
+  .chipRemove:hover {
+    color: #17120d;
+  }
+  
+  .emptyChips {
+    margin: 1rem 0 0;
+    color: #a89880;
+    font-size: 0.9rem;
+    font-style: italic;
+  }
+  
+  .footer {
+    display: flex;
+    gap: 0.85rem;
+    margin-top: 1.7rem;
+  }
+  
+  .primaryButton,
+  .secondaryButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 3rem;
+    padding: 0 1.1rem;
+    border-radius: 0.95rem;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  
+  .primaryButton {
+    flex: 1;
+    border: 1px solid #000;
+    background: #ef5b1b;
+    color: #fffaf3;
+  }
+  
+  .primaryButton:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  
+  .secondaryButton {
+    border: 1px solid #000;
+    background: #fff;
+    color: #211b14;
+  }
+  
+  @media (max-width: 640px) {
+    .dialog {
+      padding: 1.5rem;
+    }
+  
+    .footer {
+      flex-direction: column;
+    }
+  }

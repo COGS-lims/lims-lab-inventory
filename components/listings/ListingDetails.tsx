@@ -5,19 +5,15 @@ import { useRouter } from "next/navigation";
 import { Listing } from "@/models/Listing";
 import { ListingHeader } from "./ListingHeader";
 import { ContactModal } from "./ContactModal";
+import { CopurchaseModal } from "@/components/copurchase/CopurchaseModal";
 import { useCurrentUser } from "@/app/hooks/useCurrentUser";
 import styles from "./listing-view.module.css";
-import CopurchaseLabInput from "@/components/copurchase/CopurchaseLabInput";
-import CopurchaseInvite from "@/components/copurchase/CopurchaseInvite";
 
 interface ListingDetailsProps {
   contactEmail: string;
   listing: Listing;
 }
 
-/**
- * Formats currency for listing prices.
- */
 function formatPrice(price: number) {
   return Intl.NumberFormat("en-US", {
     style: "currency",
@@ -26,9 +22,6 @@ function formatPrice(price: number) {
   }).format(price);
 }
 
-/**
- * Formats an optional date for display.
- */
 function formatDate(date?: Date | string) {
   if (!date) return "No expiry date listed";
 
@@ -45,55 +38,27 @@ function formatDate(date?: Date | string) {
   }).format(parsedDate);
 }
 
-/**
- * Maps condition labels to a stable visual style.
- */
 function getConditionTone(condition: string) {
   const normalized = condition.toLowerCase();
 
-  if (normalized === "new") {
-    return styles.conditionNew;
-  }
+  if (normalized === "new") return styles.conditionNew;
+  if (normalized === "good") return styles.conditionGood;
+  if (normalized === "fair") return styles.conditionFair;
+  if (normalized === "poor") return styles.conditionPoor;
 
-  if (normalized === "good") {
-    return styles.conditionGood;
-  }
-
-  if (normalized === "fair") {
-    return styles.conditionFair;
-  }
-
-  if (normalized === "poor") {
-    return styles.conditionPoor;
-  }
-
-  return styles.conditionDefault; // fallback
+  return styles.conditionDefault;
 }
 
-/**
- * Maps hazard labels to a stable visual style.
- */
 function getHazardTone(hazard: string) {
   const normalized = hazard.toLowerCase();
 
-  if (normalized.includes("chemical")) {
-    return styles.hazardDanger;
-  }
-
-  if (normalized.includes("physical")) {
-    return styles.hazardNeutral;
-  }
-
-  if (normalized.includes("biological")) {
-    return styles.hazardMuted;
-  }
+  if (normalized.includes("chemical")) return styles.hazardDanger;
+  if (normalized.includes("physical")) return styles.hazardNeutral;
+  if (normalized.includes("biological")) return styles.hazardMuted;
 
   return styles.hazardWarning;
 }
 
-/**
- * Main listing view that renders content and handles contact modal state.
- */
 export function ListingDetails({ contactEmail, listing }: ListingDetailsProps) {
   const imageUrls =
     listing.imageUrls.length > 0 ? listing.imageUrls : ["", "", ""];
@@ -101,17 +66,22 @@ export function ListingDetails({ contactEmail, listing }: ListingDetailsProps) {
   const router = useRouter();
   const { user: currentUser } = useCurrentUser();
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+  const [isCopurchaseOpen, setIsCopurchaseOpen] = useState(false);
   const [activeImage, setActiveImage] = useState(imageUrls[0]);
   const [quantity, setQuantity] = useState(1);
   const [deleting, setDeleting] = useState(false);
 
-  const canDelete = (currentUser?.labs ?? []).some(l => l.labId === listing.labId);
+  const canDelete = (currentUser?.labs ?? []).some(
+    l => l.labId === listing.labId
+  );
 
   async function handleDelete() {
     if (!confirm(`Delete "${listing.itemName}"? This cannot be undone.`)) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/listings/${listing.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/listings/${listing.id}`, {
+        method: "DELETE",
+      });
       if (!res.ok) {
         const json = await res.json();
         alert(json.message ?? "Failed to delete listing.");
@@ -181,6 +151,7 @@ export function ListingDetails({ contactEmail, listing }: ListingDetailsProps) {
             </button>
           )}
         </div>
+
         <div className={styles.contentGrid}>
           {/* LEFT-SIDE PICTURES */}
           <section className={styles.galleryColumn}>
@@ -263,7 +234,11 @@ export function ListingDetails({ contactEmail, listing }: ListingDetailsProps) {
               </div>
 
               <div className={styles.actionRow}>
-                <button className={styles.secondaryAction} type="button">
+                <button
+                  className={styles.secondaryAction}
+                  type="button"
+                  onClick={() => setIsCopurchaseOpen(true)}
+                >
                   Co-Purchase
                 </button>
                 <button
@@ -317,11 +292,18 @@ export function ListingDetails({ contactEmail, listing }: ListingDetailsProps) {
           </section>
         </div>
       </section>
+
       <ContactModal
         contactEmail={contactEmail}
         isOpen={isContactModalOpen}
         listingName={listing.itemName}
         onClose={() => setIsContactModalOpen(false)}
+      />
+      <CopurchaseModal
+        contactEmail={contactEmail}
+        isOpen={isCopurchaseOpen}
+        listingName={listing.itemName}
+        onClose={() => setIsCopurchaseOpen(false)}
       />
     </main>
   );
