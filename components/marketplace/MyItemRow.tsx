@@ -1,18 +1,18 @@
 "use client";
 
-import { Item } from "@/app/types/inventory";
+import type { Listing } from "@/models/Listing";
 import styles from "./MyItemRow.module.css";
 
 type Props = {
-    item: Item;
-    onEdit: (item: Item) => void;
+    item: Listing;
+    onEdit: (item: Listing) => void;
 };
 
 export default function MyItemRow({ item, onEdit }: Props) {
     return (
         <div className={styles.row}>
             <div>
-                <p className={styles.itemName}>{item.name}</p>
+                <p className={styles.itemName}>{item.itemName}</p>
                 <p className={styles.itemId}>
                     ID: {item.id.slice(-7).toUpperCase()}
                 </p>

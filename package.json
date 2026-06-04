@@ -17,6 +17,7 @@
         "test:ci": "jest --forceExit"
     },
     "dependencies": {
+        "@google-cloud/storage": "^7.19.0",
         "@playwright/test": "^1.49.0",
         "@radix-ui/react-slot": "^1.1.0",
         "class-variance-authority": "^0.7.1",
@@ -24,6 +25,7 @@
         "lucide-react": "^0.464.0",
         "mongoose": "^8.9.0",
         "next": "^15.0.3",
+        "next-auth": "^5.0.0-beta.31",
         "playwright": "^1.49.0",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",

@@ -21,6 +21,8 @@ export async function middleware(req: NextRequest) {
 
     // Not signed in → let the page handle it (most pages will redirect to /login on their own)
     if (!token) {
+        const url = req.nextUrl.clone();
+        url.pathname = "/login";
         return NextResponse.next();
     }
 
@@ -34,7 +36,7 @@ export async function middleware(req: NextRequest) {
 
     if (!needsOnboarding && pathname === "/onboarding") {
         const url = req.nextUrl.clone();
-        url.pathname = "/";
+        url.pathname = "/marketplace";
         return NextResponse.redirect(url);
     }
 

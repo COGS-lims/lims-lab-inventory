@@ -1,14 +1,15 @@
 "use client";
 
 import { User } from "@/app/types/user";
-import { Item } from "@/app/types/inventory";
+import type { Listing } from "@/models/Listing";
+import { signOut } from "next-auth/react";
 import MyItemRow from "./MyItemRow";
 import styles from "./ProfileSidebar.module.css";
 
 type Props = {
     user: User;
-    myItems: Item[];
-    onEditItem: (item: Item) => void;
+    myItems: Listing[];
+    onEditItem: (item: Listing) => void;
     onListNewItem: () => void;
     onEditProfile: () => void;
 };
@@ -54,6 +55,12 @@ export default function ProfileSidebar({
                     className={styles.editProfileBtn}
                 >
                     Edit profile
+                </button>
+                <button
+                    onClick={() => signOut({ callbackUrl: "/login" })}
+                    className={styles.logoutBtn}
+                >
+                    Log out
                 </button>
             </div>
 

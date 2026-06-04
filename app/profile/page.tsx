@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
     ArrowLeft,
     CalendarDays,
@@ -8,10 +9,11 @@ import {
     UserRound,
 } from "lucide-react";
 
+import { auth } from "@/auth";
+import { getUserByEmail } from "@/services/user";
 import {
     Affiliation,
     loadProfileAffiliations,
-    profileSeed,
     sampleAffiliations,
 } from "./profile-data";
 
@@ -113,17 +115,43 @@ function LabAffiliationsCard({
     );
 }
 
+const statusLabels: Record<string, string> = {
+    ACTIVE: "Active",
+    INACTIVE: "Inactive",
+    SUSPENDED: "Suspended",
+};
+
 export default async function ProfilePage({
     searchParams,
 }: Readonly<{
     searchParams?: Promise<{ labs?: string }>;
 }>) {
+    const session = await auth();
+    const sessionEmail = session?.user?.email;
+
+    if (!sessionEmail) {
+        redirect("/login");
+    }
+
+    const currentUser = await getUserByEmail(sessionEmail);
+
+    if (!currentUser) {
+        redirect("/onboarding");
+    }
+
     const resolvedParams = searchParams ? await searchParams : undefined;
     const affiliations = resolvedParams?.labs === "empty"
         ? []
         : process.env.DATABASE_URL
-            ? await loadProfileAffiliations()
+            ? await loadProfileAffiliations(currentUser.email)
             : sampleAffiliations;
+
+    const displayName = `${currentUser.name.first} ${currentUser.name.last}`.trim();
+    const pronouns = currentUser?.profile?.pronouns ?? "";
+    const bio = currentUser?.profile?.description ?? "";
+    const email = currentUser?.email ?? "";
+    const phone = currentUser?.profile?.phone ?? "";
+    const status = statusLabels[currentUser?.status ?? ""] ?? (currentUser?.status ?? "");
 
     return (
         <main className="min-h-screen bg-[#f7f6f2] text-[#111111]">
@@ -139,7 +167,7 @@ export default async function ProfilePage({
                 </div>
             </div>
 
-            <div className="mx-auto flex w-full max-w-[1512px] flex-col gap-[76px] px-6 py-[58px] sm:px-10 lg:px-[87px] lg:py-[58px]">
+            <div className="mx-auto flex w-full max-w-[1512px] flex-col gap-[40px] px-6 py-[58px] sm:px-10 lg:px-[87px] lg:py-[58px]">
                 <section className="min-h-[446px] overflow-hidden rounded-[25px] border-2 border-[#202020] bg-[#fbfbfd] shadow-[0_12px_24px_rgba(15,23,42,0.10)]">
                     <div className="h-24 bg-[#245f86] sm:h-32" />
                     <div className="px-6 pb-8 pt-0 sm:px-10 sm:pb-10 lg:px-[52px] lg:pb-[54px]">
@@ -155,36 +183,45 @@ export default async function ProfilePage({
 
                             <div className="max-w-4xl pt-2 sm:pt-4 lg:pt-[18px]">
                                 <h1 className="text-5xl font-semibold tracking-[-0.03em] text-[#101010] sm:text-6xl lg:text-[58px]">
-                                    {profileSeed.name}
+                                    {displayName}
                                 </h1>
-                                <p className="mt-3 text-2xl font-semibold text-[#9b9b9f]">{profileSeed.pronouns}</p>
-                                <p className="mt-8 max-w-[820px] text-lg leading-8 text-[#202020] sm:text-xl">
-                                    {profileSeed.bio}
-                                </p>
+                                {pronouns && (
+                                    <p className="mt-3 text-2xl font-semibold text-[#9b9b9f]">{pronouns}</p>
+                                )}
+                                {bio && (
+                                    <p className="mt-8 max-w-[820px] text-lg leading-8 text-[#202020] sm:text-xl">
+                                        {bio}
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <div className="grid gap-8 lg:grid-cols-[603px_600px] lg:justify-between lg:gap-0">
+                <div className="grid gap-8 lg:grid-cols-[640px_640px] lg:justify-between lg:gap-0">
                     <InfoCard
                         icon={<Mail className="h-10 w-10" strokeWidth={1.8} />}
                         title="Contact Information"
                     >
                         <div className="space-y-8">
-                            <InfoRow label="Email address" value={profileSeed.email} />
-                            <InfoRow label="Phone number" value={profileSeed.phone} />
+                            {email && <InfoRow label="Email address" value={email} />}
+                            {phone && <InfoRow label="Phone number" value={phone} />}
+                            {!email && !phone && (
+                                <p className="text-sm text-[#8b8b8f]">No contact information on file.</p>
+                            )}
                         </div>
                     </InfoCard>
 
                     <LabAffiliationsCard affiliations={affiliations} />
                 </div>
 
-                <div className="flex justify-end">
-                    <div className="rounded-full border border-[#d2d8de] bg-white px-4 py-2 text-sm font-medium uppercase tracking-[0.18em] text-[#245f86] shadow-sm">
-                        {profileSeed.status}
+                {status && (
+                    <div className="flex justify-end">
+                        <div className="rounded-full border border-[#d2d8de] bg-white px-4 py-2 text-sm font-medium uppercase tracking-[0.18em] text-[#245f86] shadow-sm">
+                            {status}
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </main>
     );

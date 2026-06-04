@@ -37,14 +37,14 @@ const listingValidationSchema = z
   .partial()
   .strict();
 
+type ListingRouteContext = { params: Promise<{ id: string }> };
+
 /**
  * Get a listing entry by ID
  * @param id the ID of the listing to get
  * ex req: GET /listings/001 HTTP/1.1
  * @returns the listing as a JS object in a JSON response
  */
-type ListingRouteContext = { params: Promise<{ id: string }> };
-
 async function GET(request: Request, context: ListingRouteContext) {
   const { id } = await context.params;
   const { allowed, reason } = await getSession("inventory:view");
@@ -79,7 +79,7 @@ async function GET(request: Request, context: ListingRouteContext) {
   }
 
   try {
-    const listing = await getListing(parsedId.data); // don't need mongo doc features
+    const listing = await getListing(parsedId.data);
     if (!listing) {
       return NextResponse.json(
         { success: false, message: "Listing not found." },
@@ -134,7 +134,6 @@ async function PUT(request: Request, context: ListingRouteContext) {
   }
 
   const formData = await request.formData();
-  // Build a plain object from non-file fields before validation.
   const textEntries: [string, FormDataEntryValue][] = [];
   for (const [key, value] of formData.entries()) {
     if (key === "image" || key === "images" || key === "hazardTags") continue;
@@ -142,13 +141,11 @@ async function PUT(request: Request, context: ListingRouteContext) {
   }
   const updateData: Partial<ListingInput> = Object.fromEntries(textEntries);
 
-  // handle array fields
   const hazardTags = formData.getAll("hazardTags");
   if (hazardTags.length > 0) {
     updateData.hazardTags = hazardTags as ListingInput["hazardTags"];
   }
 
-  // type conversions
   if (updateData.quantityAvailable !== undefined) {
     updateData.quantityAvailable = Number(updateData.quantityAvailable);
   }
@@ -158,9 +155,12 @@ async function PUT(request: Request, context: ListingRouteContext) {
   }
 
   if (updateData.expiryDate !== undefined) {
-    updateData.expiryDate = new Date(
-      updateData.expiryDate as unknown as string
-    );
+    const raw = updateData.expiryDate as unknown as string;
+    if (raw === "") {
+      delete updateData.expiryDate;
+    } else {
+      updateData.expiryDate = new Date(raw);
+    }
   }
 
   const parsedRequest = listingValidationSchema.safeParse(updateData);
@@ -175,8 +175,7 @@ async function PUT(request: Request, context: ListingRouteContext) {
   }
 
   try {
-    // Only replace image URLs when real files were uploaded in this request.
-    const updatePayload = { ...parsedRequest.data };
+    const updatePayload: Partial<ListingInput> = { ...parsedRequest.data };
     const imageFiles = getValidImageFiles(formData);
     if (imageFiles.length > 0) {
       updatePayload.imageUrls = await uploadListingImages(imageFiles);
@@ -252,16 +251,14 @@ async function DELETE(request: Request, context: ListingRouteContext) {
   }
 
   try {
-    const listing = await deleteListing(parsedId.data);
-    if (!listing) {
+    const deleted = await deleteListing(parsedId.data);
+    if (!deleted) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Listing not found",
-        },
+        { success: false, message: "Listing not found" },
         { status: 404 }
       );
     }
+
     return NextResponse.json(
       {
         success: true,

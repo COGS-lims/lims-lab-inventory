@@ -197,9 +197,9 @@ async function POST(request: Request) {
             }
         );
     } catch (error: any) {
+        console.error("[POST /api/listings] error:", error);
         if (error.code === 11000) {
             return NextResponse.json(
-                // don't send mongo's error - exposes design info
                 { success: false, message: "This listing already exists." },
                 { status: 409 }
             );

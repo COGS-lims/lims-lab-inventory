@@ -7,7 +7,7 @@ import { connectToDatabase } from "@/lib/mongoose";
 import LabModel from "@/models/Lab";
 import UserLab from "@/models/UserLab";
 import { User } from "@/models/User";
-import { getOrCreateDemoProfileUser } from "@/app/profile/profile-data";
+import { auth } from "@/auth";
 
 const roleOptions = [
     { value: "PI", label: "PI" },
@@ -58,23 +58,35 @@ async function createLabAction(formData: FormData) {
 
     const name = String(formData.get("newLabName") ?? "").trim();
     const department = String(formData.get("department") ?? "").trim();
+    const role = String(formData.get("newLabRole") ?? "").trim();
+    const dateJoinedInput = String(formData.get("newDateJoined") ?? "").trim();
 
-    if (!name || !department) {
+    if (!name || !department || !role) {
         return;
     }
 
     if (!process.env.DATABASE_URL) {
-        return;
+        redirect("/profile");
     }
 
     await connectToDatabase();
-    await LabModel.create({
+    const user = await getCurrentProfileUserOrRedirect();
+    const lab = await LabModel.create({
         name,
         department,
         createdAt: new Date(),
     });
 
+    await saveUserLabAffiliation({
+        userId: user._id,
+        labId: lab._id,
+        role,
+        joinedAt: dateJoinedInput ? new Date(dateJoinedInput) : new Date(),
+    });
+
+    revalidatePath("/profile");
     revalidatePath("/profile/labs/new");
+    redirect("/profile");
 }
 
 async function addExistingLabAction(formData: FormData) {
@@ -93,17 +105,55 @@ async function addExistingLabAction(formData: FormData) {
     }
 
     await connectToDatabase();
+    const user = await getCurrentProfileUserOrRedirect();
 
     const lab = await LabModel.findById(labId).exec();
     if (!lab) {
         return;
     }
 
-    const user = await getOrCreateDemoProfileUser();
-    const joinedAt = dateJoinedInput ? new Date(dateJoinedInput) : new Date();
+    await saveUserLabAffiliation({
+        userId: user._id,
+        labId: lab._id,
+        role,
+        joinedAt: dateJoinedInput ? new Date(dateJoinedInput) : new Date(),
+    });
 
+    revalidatePath("/profile");
+    revalidatePath("/profile/labs/new");
+    redirect("/profile");
+}
+
+async function getCurrentProfileUserOrRedirect() {
+    const session = await auth();
+    const sessionEmail = session?.user?.email;
+
+    if (!sessionEmail) {
+        redirect("/login");
+    }
+
+    const user = await User.findOne({ email: sessionEmail.toLowerCase() }).exec();
+
+    if (!user) {
+        redirect("/onboarding");
+    }
+
+    return user;
+}
+
+async function saveUserLabAffiliation({
+    userId,
+    labId,
+    role,
+    joinedAt,
+}: {
+    userId: unknown;
+    labId: unknown;
+    role: string;
+    joinedAt: Date;
+}) {
     await UserLab.findOneAndUpdate(
-        { user: user._id, lab: lab._id },
+        { user: userId, lab: labId },
         {
             role,
             joinedAt,
@@ -116,22 +166,18 @@ async function addExistingLabAction(formData: FormData) {
         }
     ).exec();
 
-    await User.findByIdAndUpdate(user._id, {
-        $pull: { labs: { labId: lab._id } },
+    await User.findByIdAndUpdate(userId, {
+        $pull: { labs: { labId } },
     }).exec();
 
-    await User.findByIdAndUpdate(user._id, {
+    await User.findByIdAndUpdate(userId, {
         $push: {
             labs: {
-                labId: lab._id,
+                labId,
                 role,
             },
         },
     }).exec();
-
-    revalidatePath("/profile");
-    revalidatePath("/profile/labs/new");
-    redirect("/profile");
 }
 
 function SectionCard({
@@ -176,8 +222,8 @@ export default async function AddLabAffiliationPage() {
                         </h1>
                         <p className="max-w-[700px] text-sm leading-6 text-[#69707a] sm:text-base">
                             Choose an existing lab from the database or create a new lab record
-                            for testing. The affiliation form stays frontend-only for now, while
-                            the create-lab form can write to MongoDB when `DATABASE_URL` is set.
+                            for testing. Both options save the lab affiliation to your profile
+                            when `DATABASE_URL` is set.
                         </p>
                     </div>
 
@@ -259,8 +305,8 @@ export default async function AddLabAffiliationPage() {
 
                                 <div className="rounded-xl border border-dashed border-[#d4dce5] bg-[#f8fbfd] px-4 py-3 text-sm leading-6 text-[#5d6773]">
                                     When `DATABASE_URL` is configured, this saves a `UserLab`
-                                    affiliation for the demo profile user and redirects back to
-                                    the profile page.
+                                    affiliation for the signed-in user and redirects back to the
+                                    profile page.
                                 </div>
 
                                 <div className="flex flex-col-reverse gap-3 pt-3 sm:flex-row sm:justify-end">
@@ -283,7 +329,7 @@ export default async function AddLabAffiliationPage() {
                         <SectionCard
                             icon={<PlusSquare className="h-7 w-7" strokeWidth={1.8} />}
                             title="Create New Lab"
-                            description="If the lab is not in the database yet, create a new lab record for testing and then select it from the list."
+                            description="If the lab is not in the database yet, create it and add it to your profile."
                         >
                             <form action={createLabAction} className="space-y-7">
                                 <div className="space-y-3">
@@ -318,10 +364,51 @@ export default async function AddLabAffiliationPage() {
                                     />
                                 </div>
 
+                                <div className="space-y-3">
+                                    <label
+                                        htmlFor="newLabRole"
+                                        className="block text-sm font-semibold text-[#222222]"
+                                    >
+                                        Lab Role
+                                    </label>
+                                    <div className="relative">
+                                        <select
+                                            id="newLabRole"
+                                            name="newLabRole"
+                                            defaultValue=""
+                                            className="h-14 w-full appearance-none rounded-xl border border-[#d9dee6] bg-white px-4 text-base text-[#111111] outline-none transition focus:border-[#245f86] focus:ring-2 focus:ring-[#245f86]/20"
+                                        >
+                                            <option value="" disabled>
+                                                Select a role
+                                            </option>
+                                            {roleOptions.map((role) => (
+                                                <option key={role.value} value={role.value}>
+                                                    {role.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#7f8a95]" />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <label
+                                        htmlFor="newDateJoined"
+                                        className="block text-sm font-semibold text-[#222222]"
+                                    >
+                                        Date Joined
+                                    </label>
+                                    <input
+                                        id="newDateJoined"
+                                        name="newDateJoined"
+                                        type="date"
+                                        className="h-14 w-full rounded-xl border border-[#d9dee6] bg-white px-4 text-base text-[#111111] outline-none transition focus:border-[#245f86] focus:ring-2 focus:ring-[#245f86]/20"
+                                    />
+                                </div>
+
                                 <div className="rounded-xl border border-dashed border-[#d4dce5] bg-[#f8fbfd] px-4 py-3 text-sm leading-6 text-[#5d6773]">
                                     This form uses the repo&apos;s `DATABASE_URL` connection when
-                                    available. It creates a lab in the `Lab` collection so it can
-                                    appear in the existing-lab dropdown.
+                                    available. It creates a lab and adds it to your profile.
                                 </div>
 
                                 <div className="flex flex-col-reverse gap-3 pt-3 sm:flex-row sm:justify-end">

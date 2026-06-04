@@ -50,6 +50,7 @@ describe( "Lab API by ID", () => {
             expect(data).toEqual({ message: "Invalid ID" });
         });
         it("should return 500 on server error", async () => {
+            const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
             // Mock the getLab function to throw an error
             mockGetLab.mockRejectedValue(new Error("Database error"));
             // Create a mock request object
@@ -58,6 +59,8 @@ describe( "Lab API by ID", () => {
             expect(response.status).toBe(500);
             const data = await response.json();
             expect(data).toEqual({ message: "Internal server error" });
+            expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(Error));
+            consoleErrorSpy.mockRestore();
         });
     });
     describe ("PUT /api/lab/[id]", () => {
@@ -119,6 +122,7 @@ describe( "Lab API by ID", () => {
             expect(data).toEqual({ message: "Invalid data" });
         });
         it("should return 500 on server error", async () => {
+            const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
             // Mock the updateLab function to throw an error
             mockUpdateLab.mockRejectedValue(new Error("Database error"));
             // Create a mock request object with valid data
@@ -132,6 +136,8 @@ describe( "Lab API by ID", () => {
             expect(response.status).toBe(500);
             const data = await response.json();
             expect(data).toEqual({ message: "Internal server error" });
+            expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(Error));
+            consoleErrorSpy.mockRestore();
         });
     });
     describe("DELETE /api/lab/[id]", () => {
@@ -164,6 +170,7 @@ describe( "Lab API by ID", () => {
             expect(data).toEqual({ message: "Invalid ID" });
         });
         it("should return 500 on server error", async () => {
+            const consoleErrorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
             // Mock the deleteLab function to throw an error
             mockDeleteLab.mockRejectedValue(new Error("Database error"));
             // Create a mock request object
@@ -172,6 +179,8 @@ describe( "Lab API by ID", () => {
             expect(response.status).toBe(500);
             const data = await response.json();
             expect(data).toEqual({ message: "Internal server error" });
+            expect(consoleErrorSpy).toHaveBeenCalledWith(expect.any(Error));
+            consoleErrorSpy.mockRestore();
         });
     });
 
