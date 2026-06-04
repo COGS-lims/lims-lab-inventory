@@ -22,20 +22,57 @@ export default function MarketplacePage() {
         search: "",
         category: "",
         labId: "",
+        condition: "",
+        expiryFilter: "all",
     });
 
     // Filtered listings for the grid
     const filteredItems = useMemo(() => {
         return listings.filter(listing => {
+            // Search filter
             if (
                 filters.search &&
                 !listing.itemName.toLowerCase().includes(filters.search.toLowerCase())
             ) {
                 return false;
             }
+
+            // Lab filter
             if (filters.labId && listing.labId !== filters.labId) {
                 return false;
             }
+
+            // Condition filter
+            if (filters.condition && listing.condition !== filters.condition) {
+                return false;
+            }
+
+            // Expiry filter
+            if (filters.expiryFilter !== "all") {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                
+                const expiryDate = listing.expiryDate ? new Date(listing.expiryDate) : null;
+                if (expiryDate) {
+                    expiryDate.setHours(0, 0, 0, 0);
+                }
+
+                const thirtyDaysFromNow = new Date(today);
+                thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+
+                if (filters.expiryFilter === "expired") {
+                    // Show only expired items
+                    if (!expiryDate || expiryDate >= today) {
+                        return false;
+                    }
+                } else if (filters.expiryFilter === "expiring-soon") {
+                    // Show items expiring in next 30 days (but not already expired)
+                    if (!expiryDate || expiryDate < today || expiryDate > thirtyDaysFromNow) {
+                        return false;
+                    }
+                }
+            }
+
             return true;
         });
     }, [listings, filters]);

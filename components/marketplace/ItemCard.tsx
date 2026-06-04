@@ -22,11 +22,20 @@ const CONDITION_CONFIG: Record<
 export default function ItemCard({ item, labOwnerName }: Props) {
     const condition = CONDITION_CONFIG[item.condition] ?? CONDITION_CONFIG["Good"];
     const labDisplay = labOwnerName ?? item.labName ?? item.labId;
+    const firstImage = item.imageUrls[0];
 
     return (
         <Link href={`/listings/${item.id}`} className={styles.card} style={{ textDecoration: "none", color: "inherit" }}>
             <div className={styles.imageWrapper}>
-                <span className={styles.imagePlaceholder}>[image here]</span>
+            {firstImage ? (
+                <img 
+                    src={firstImage} 
+                    alt={item.itemName}
+                    className={styles.image}
+                />
+            ) : (
+                <span className={styles.imagePlaceholder}>No image provided</span>
+            )}
                 <span className={`${styles.badge} ${condition.badgeClass}`}>
                     {condition.label}
                 </span>

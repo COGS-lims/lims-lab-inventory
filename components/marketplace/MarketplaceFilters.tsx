@@ -8,6 +8,8 @@ export type FilterState = {
     search: string;
     category: Category | "";
     labId: string;
+    condition: string | "";
+    expiryFilter: "all" | "expired" | "expiring-soon";
 };
 
 type Props = {
@@ -15,17 +17,20 @@ type Props = {
     onChange: (filters: FilterState) => void;
 };
 
-const FILTER_PILLS = ["Category", "Lab", "Expiry", "Tags"] as const;
+const FILTER_PILLS = ["Category", "Lab", "Condition", "Expiry"] as const;
 type FilterPill = (typeof FILTER_PILLS)[number];
+const CONDITIONS = ["New", "Good", "Fair", "Poor"];
 
 export default function MarketplaceFilters({ labOptions, onChange }: Props) {
     const [search, setSearch] = useState("");
     const [activeFilter, setActiveFilter] = useState<FilterPill | null>(null);
     const [category, setCategory] = useState<Category | "">("");
     const [labId, setLabId] = useState("");
+    const [condition, setCondition] = useState<string | "">("");
+    const [expiryFilter, setExpiryFilter] = useState<"all" | "expired" | "expiring-soon">("all");
 
     function emit(updates: Partial<FilterState>) {
-        onChange({ search, category, labId, ...updates });
+        onChange({ search, category, labId, condition, expiryFilter, ...updates });
     }
 
     function handleSearch(value: string) {
@@ -43,6 +48,18 @@ export default function MarketplaceFilters({ labOptions, onChange }: Props) {
         setLabId(value);
         setActiveFilter(null);
         emit({ labId: value });
+    }
+
+    function handleCondition(value: string | "") {
+        setCondition(value);
+        setActiveFilter(null);
+        emit({ condition: value });
+    }
+
+    function handleExpiry(value: "all" | "expired" | "expiring-soon") {
+        setExpiryFilter(value);
+        setActiveFilter(null);
+        emit({ expiryFilter: value });
     }
 
     return (
@@ -78,7 +95,9 @@ export default function MarketplaceFilters({ labOptions, onChange }: Props) {
                     const isActive = activeFilter === pill;
                     const hasValue =
                         (pill === "Category" && category !== "") ||
-                        (pill === "Lab" && labId !== "");
+                        (pill === "Lab" && labId !== "") ||
+                        (pill === "Condition" && condition !== "") ||
+                        (pill === "Expiry" && expiryFilter !== "all");
 
                     return (
                         <button
@@ -136,10 +155,48 @@ export default function MarketplaceFilters({ labOptions, onChange }: Props) {
                 </div>
             )}
 
-            {/* Coming soon */}
-            {(activeFilter === "Expiry" || activeFilter === "Tags") && (
+            {/* Condition dropdown */}
+            {activeFilter === "Condition" && (
                 <div className={styles.dropdown}>
-                    <p className={styles.dropdownComingSoon}>Coming soon</p>
+                    <button
+                        onClick={() => handleCondition("")}
+                        className={`${styles.dropdownOption} ${condition === "" ? styles["dropdownOption--selected"] : ""}`}
+                    >
+                        All conditions
+                    </button>
+                    {CONDITIONS.map(c => (
+                        <button
+                            key={c}
+                            onClick={() => handleCondition(c)}
+                            className={`${styles.dropdownOption} ${condition === c ? styles["dropdownOption--selected"] : ""}`}
+                        >
+                            {c}
+                        </button>
+                    ))}
+                </div>
+            )}
+
+            {/* Expiry dropdown */}
+            {activeFilter === "Expiry" && (
+                <div className={styles.dropdown}>
+                    <button
+                        onClick={() => handleExpiry("all")}
+                        className={`${styles.dropdownOption} ${expiryFilter === "all" ? styles["dropdownOption--selected"] : ""}`}
+                    >
+                        All items
+                    </button>
+                    <button
+                        onClick={() => handleExpiry("expiring-soon")}
+                        className={`${styles.dropdownOption} ${expiryFilter === "expiring-soon" ? styles["dropdownOption--selected"] : ""}`}
+                    >
+                        Expiring soon (30 days)
+                    </button>
+                    <button
+                        onClick={() => handleExpiry("expired")}
+                        className={`${styles.dropdownOption} ${expiryFilter === "expired" ? styles["dropdownOption--selected"] : ""}`}
+                    >
+                        Expired items
+                    </button>
                 </div>
             )}
         </div>
