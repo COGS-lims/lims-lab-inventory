@@ -22,10 +22,12 @@ jest.mock("@/lib/googleCloud", () => ({
 jest.mock("@/lib/rbac", () => ({
   getSession: jest.fn().mockResolvedValue({
     allowed: true,
-    user: null,
+    user: { email: "seller@ucsd.edu" },
     reason: undefined,
   }),
 }));
+
+const routeParams = (id: string) => ({ params: Promise.resolve({ id }) });
 
 /** import after mocking */
 import { GET, POST } from "@/app/api/listings/route";
@@ -127,7 +129,7 @@ describe("API: Successful Responses", () => {
       (getListing as jest.Mock).mockResolvedValue(listingData);
 
       const req = new Request(`http://localhost/api/listings/${id}`);
-      const res = await GET_BY_ID(req, { params: { id: id } });
+      const res = await GET_BY_ID(req, routeParams(id));
       const body = await res.json();
 
       expect(res.status).toEqual(200);
@@ -212,6 +214,7 @@ describe("API: Successful Responses", () => {
           price: 50,
           expiryDate: new Date(listingData.expiryDate),
           hazardTags: ["Physical", "Chemical"],
+          sellerEmail: "seller@ucsd.edu",
         })
       );
     });
@@ -264,6 +267,7 @@ describe("API: Successful Responses", () => {
       expect(addListing).toHaveBeenCalledWith(
         expect.objectContaining({
           imageUrls: [],
+          sellerEmail: "seller@ucsd.edu",
         })
       );
     });
@@ -371,7 +375,7 @@ describe("API: Successful Responses", () => {
         body: formData,
       });
 
-      const res = await PUT(req, { params: { id } });
+      const res = await PUT(req, routeParams(id));
       const body = await res.json();
 
       expect(res.status).toBe(200);
@@ -403,7 +407,7 @@ describe("API: Successful Responses", () => {
       const req = new Request(`http://localhost/api/listings/${id}`, {
         method: "DELETE",
       });
-      const res = await DELETE(req, { params: { id } });
+      const res = await DELETE(req, routeParams(id));
       const body = await res.json();
 
       expect(res.status).toBe(200);
@@ -464,7 +468,7 @@ describe("API: Error Responses", () => {
       (connectToDatabase as jest.Mock).mockRejectedValue(new Error("DB Error"));
 
       const req = new Request(`http://localhost/api/listings/${id}`);
-      const res = await GET_BY_ID(req, { params: { id: id } });
+      const res = await GET_BY_ID(req, routeParams(id));
       const body = await res.json();
 
       expect(res.status).toBe(500);
@@ -478,7 +482,7 @@ describe("API: Error Responses", () => {
       (connectToDatabase as jest.Mock).mockResolvedValue({});
 
       const req = new Request(`http://localhost/api/listings/${id}`);
-      const res = await GET_BY_ID(req, { params: { id: id } });
+      const res = await GET_BY_ID(req, routeParams(id));
       const body = await res.json();
 
       expect(res.status).toBe(400);
@@ -495,7 +499,7 @@ describe("API: Error Responses", () => {
       (getListing as jest.Mock).mockResolvedValue(null);
 
       const req = new Request(`http://localhost/api/listings/${id}`);
-      const res = await GET_BY_ID(req, { params: { id: id } });
+      const res = await GET_BY_ID(req, routeParams(id));
       const body = await res.json();
 
       expect(res.status).toBe(404);
@@ -511,7 +515,7 @@ describe("API: Error Responses", () => {
       (getListing as jest.Mock).mockRejectedValue(new Error("DB Error"));
 
       const req = new Request(`http://localhost/api/listings/${id}`);
-      const res = await GET_BY_ID(req, { params: { id: id } });
+      const res = await GET_BY_ID(req, routeParams(id));
       const body = await res.json();
 
       expect(res.status).toBe(500);
@@ -621,7 +625,7 @@ describe("API: Error Responses", () => {
         method: "PUT",
         body: formData,
       });
-      const res = await PUT(req, { params: { id } });
+      const res = await PUT(req, routeParams(id));
       const body = await res.json();
 
       expect(res.status).toBe(500);
@@ -643,7 +647,7 @@ describe("API: Error Responses", () => {
         method: "PUT",
         body: formData,
       });
-      const res = await PUT(req, { params: { id } });
+      const res = await PUT(req, routeParams(id));
       const body = await res.json();
 
       expect(res.status).toBe(400);
@@ -665,7 +669,7 @@ describe("API: Error Responses", () => {
         body: formData,
       });
 
-      const res = await PUT(req, { params: { id } });
+      const res = await PUT(req, routeParams(id));
       const body = await res.json();
 
       expect(res.status).toBe(400);
@@ -688,7 +692,7 @@ describe("API: Error Responses", () => {
         method: "PUT",
         body: formData,
       });
-      const res = await PUT(req, { params: { id } });
+      const res = await PUT(req, routeParams(id));
       const body = await res.json();
 
       expect(res.status).toBe(404);
@@ -717,7 +721,7 @@ describe("API: Error Responses", () => {
         method: "PUT",
         body: formData,
       });
-      const res = await PUT(req, { params: { id } });
+      const res = await PUT(req, routeParams(id));
       const body = await res.json();
 
       expect(res.status).toBe(500);
@@ -741,7 +745,7 @@ describe("API: Error Responses", () => {
       const req = new Request(`http://localhost/api/listings/${id}`, {
         method: "DELETE",
       });
-      const res = await DELETE(req, { params: { id } });
+      const res = await DELETE(req, routeParams(id));
       const body = await res.json();
 
       expect(res.status).toBe(500);
@@ -757,7 +761,7 @@ describe("API: Error Responses", () => {
       const req = new Request(`http://localhost/api/listings/${id}`, {
         method: "DELETE",
       });
-      const res = await DELETE(req, { params: { id } });
+      const res = await DELETE(req, routeParams(id));
       const body = await res.json();
 
       expect(res.status).toBe(400);
@@ -776,7 +780,7 @@ describe("API: Error Responses", () => {
       const req = new Request(`http://localhost/api/listings/${id}`, {
         method: "DELETE",
       });
-      const res = await DELETE(req, { params: { id } });
+      const res = await DELETE(req, routeParams(id));
       const body = await res.json();
 
       expect(res.status).toBe(404);
@@ -794,7 +798,7 @@ describe("API: Error Responses", () => {
       const req = new Request(`http://localhost/api/listings/${id}`, {
         method: "DELETE",
       });
-      const res = await DELETE(req, { params: { id } });
+      const res = await DELETE(req, routeParams(id));
       const body = await res.json();
 
       expect(res.status).toBe(500);

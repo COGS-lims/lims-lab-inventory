@@ -38,6 +38,7 @@ const listingSchema = new Schema(
                 enum: ["Physical", "Chemical", "Biological", "Other"],
             },
         ],
+        sellerEmail: { type: String, trim: true, lowercase: true },
     },
     {
         toJSON: {
