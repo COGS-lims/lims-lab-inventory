@@ -9,15 +9,6 @@ export type Affiliation = {
     joined: string;
 };
 
-export const profileSeed = {
-    name: "Dr. Xu",
-    pronouns: "He/him",
-    bio: "Experienced principal investigator at a lab specializing in computational neuroscience. Our lab focuses on developing innovative techniques for analysis in computational neuroscience.",
-    email: "xu@ucsd.edu",
-    phone: "(xxx) xxx-xxxx",
-    status: "Active",
-};
-
 export const sampleAffiliations: Affiliation[] = [
     {
         id: "xu-comp-neuro",
@@ -56,42 +47,22 @@ function formatJoined(date: Date | string | undefined) {
     });
 }
 
-export async function getOrCreateDemoProfileUser() {
-    await connectToDatabase();
-
-    const existing = await User.findOne({ email: profileSeed.email }).exec();
-    if (existing) {
-        return existing;
-    }
-
-    return User.create({
-        ucsdId: "A12345678",
-        email: profileSeed.email,
-        name: { first: "Dr.", last: "Xu" },
-        role: "PI",
-        labs: [],
-        profile: {
-            title: "Professor",
-            department: "Computational Neuroscience",
-            phone: profileSeed.phone,
-        },
-    });
-}
-
 export async function loadProfileAffiliations(userEmail?: string) {
     if (!process.env.DATABASE_URL) {
         return sampleAffiliations;
     }
 
     try {
-        let user;
-        if (userEmail) {
-            await connectToDatabase();
-            user = await User.findOne({ email: userEmail.toLowerCase() }).exec();
+        if (!userEmail) {
+            return [] as Affiliation[];
         }
+
+        await connectToDatabase();
+        const user = await User.findOne({ email: userEmail.toLowerCase() }).exec();
         if (!user) {
-            user = await getOrCreateDemoProfileUser();
+            return [] as Affiliation[];
         }
+
         const rows = await UserLab.find({ user: user._id })
             .populate("lab")
             .sort({ joinedAt: -1 })
