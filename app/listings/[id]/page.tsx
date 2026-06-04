@@ -10,16 +10,20 @@ interface ListingPageProps {
   }>;
 }
 
-/**
- * Resolve a contact email for the listing until proper transaction
- * functionality exists.
- */
-function getListingContactEmail() {
-  return (
+function isUsableEmail(email: string) {
+  return email.includes("@") && email.includes(".");
+}
+
+function getContactEmailForListing(listing: Listing) {
+  const seller = listing.sellerEmail?.trim() ?? "";
+  if (seller && isUsableEmail(seller)) {
+    return seller;
+  }
+  const fallback =
     process.env.NEXT_PUBLIC_MARKETPLACE_CONTACT_EMAIL ??
     process.env.MARKETPLACE_CONTACT_EMAIL ??
-    "marketplace@lab.example"
-  );
+    "";
+  return fallback.trim();
 }
 
 /**
@@ -57,7 +61,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
 
     return (
       <ListingDetails
-        contactEmail={getListingContactEmail()}
+        contactEmail={getContactEmailForListing(listing)}
         listing={listing}
       />
     );
@@ -66,7 +70,7 @@ export default async function ListingPage({ params }: ListingPageProps) {
 
     return (
       <ListingDetails
-        contactEmail={getListingContactEmail()}
+        contactEmail={getContactEmailForListing(fallbackListing)}
         listing={fallbackListing}
       />
     );

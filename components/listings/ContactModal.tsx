@@ -90,6 +90,9 @@ export function ContactModal({
     return null;
   }
 
+  const hasValidEmail =
+    contactEmail.includes("@") && contactEmail.includes(".");
+
   return (
     <div className={styles.overlay} onClick={onClose} role="presentation">
       <div
@@ -119,9 +122,13 @@ export function ContactModal({
           directly by email.
         </p>
 
-        <a className={styles.emailLink} href={`mailto:${contactEmail}`}>
-          {contactEmail}
-        </a>
+        {hasValidEmail ? (
+          <a className={styles.emailLink} href={`mailto:${contactEmail}`}>
+            {contactEmail}
+          </a>
+        ) : (
+          <p className={styles.description}>Seller email is not available.</p>
+        )}
 
         <div className={styles.footer}>
           <button
@@ -131,9 +138,19 @@ export function ContactModal({
           >
             Close
           </button>
-          <a className={styles.primaryButton} href={`mailto:${contactEmail}`}>
-            Email Seller
-          </a>
+          {hasValidEmail ? (
+            <a className={styles.primaryButton} href={`mailto:${contactEmail}`}>
+              Email Seller
+            </a>
+          ) : (
+            <button
+              className={styles.primaryButton}
+              disabled
+              type="button"
+            >
+              Email Seller
+            </button>
+          )}
         </div>
       </div>
     </div>

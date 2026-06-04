@@ -114,10 +114,10 @@ async function GET(request: Request) {
  * @returns JSON response with success message and req body echoed
  */
 async function POST(request: Request) {
-    const { allowed, reason } = await getSession("listing:create");
-    if (!allowed) {
+    const { allowed, reason, user } = await getSession("listing:create");
+    if (!allowed || !user?.email) {
         return NextResponse.json(
-            { success: false, message: reason },
+            { success: false, message: reason ?? "Unauthenticated" },
             { status: 403 }
         );
     }
@@ -181,6 +181,7 @@ async function POST(request: Request) {
         const listingData = {
             ...parsedBody.data,
             imageUrls,
+            sellerEmail: user.email,
             createdAt: new Date(),
         } as ListingInput;
         const listing = await addListing(listingData);

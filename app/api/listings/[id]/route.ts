@@ -7,7 +7,10 @@ import {
   updateListing,
 } from "@/services/listings/listings";
 import { ListingInput } from "@/models/Listing";
-import { uploadListingImages } from "@/lib/listing-images";
+import {
+  getValidImageFiles,
+  uploadListingImages,
+} from "@/lib/listing-images";
 import { getSession } from "@/lib/rbac";
 
 const objectIdSchema = z
@@ -34,13 +37,16 @@ const listingValidationSchema = z
   .partial()
   .strict();
 
+type ListingRouteContext = { params: Promise<{ id: string }> };
+
 /**
  * Get a listing entry by ID
  * @param id the ID of the listing to get
  * ex req: GET /listings/001 HTTP/1.1
  * @returns the listing as a JS object in a JSON response
  */
-async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+async function GET(request: Request, context: ListingRouteContext) {
+  const { id } = await context.params;
   const { allowed, reason } = await getSession("inventory:view");
   if (!allowed) {
     return NextResponse.json(
@@ -61,7 +67,6 @@ async function GET(request: Request, { params }: { params: Promise<{ id: string 
     );
   }
 
-  const { id } = await params;
   const parsedId = objectIdSchema.safeParse(id);
   if (!parsedId.success) {
     return NextResponse.json(
@@ -74,7 +79,7 @@ async function GET(request: Request, { params }: { params: Promise<{ id: string 
   }
 
   try {
-    const listing = await getListing(parsedId.data); // don't need mongo doc features
+    const listing = await getListing(parsedId.data);
     if (!listing) {
       return NextResponse.json(
         { success: false, message: "Listing not found." },
@@ -95,7 +100,8 @@ async function GET(request: Request, { params }: { params: Promise<{ id: string 
  * @param id the ID of the listing to get as part of the path params
  * @returns the updated listing as a JS object in a JSON response
  */
-async function PUT(request: Request, { params }: { params: Promise<{ id: string }> }) {
+async function PUT(request: Request, context: ListingRouteContext) {
+  const { id } = await context.params;
   const { allowed, reason } = await getSession("inventory:update");
   if (!allowed) {
     return NextResponse.json(
@@ -116,7 +122,6 @@ async function PUT(request: Request, { params }: { params: Promise<{ id: string 
     );
   }
 
-  const { id } = await params;
   const parsedId = objectIdSchema.safeParse(id);
   if (!parsedId.success) {
     return NextResponse.json(
@@ -129,17 +134,18 @@ async function PUT(request: Request, { params }: { params: Promise<{ id: string 
   }
 
   const formData = await request.formData();
-  const updateData: Partial<ListingInput> = {
-    ...Object.fromEntries(formData.entries()),
-  };
+  const textEntries: [string, FormDataEntryValue][] = [];
+  for (const [key, value] of formData.entries()) {
+    if (key === "image" || key === "images" || key === "hazardTags") continue;
+    textEntries.push([key, value]);
+  }
+  const updateData: Partial<ListingInput> = Object.fromEntries(textEntries);
 
-  // handle array fields
   const hazardTags = formData.getAll("hazardTags");
   if (hazardTags.length > 0) {
     updateData.hazardTags = hazardTags as ListingInput["hazardTags"];
   }
 
-  // type conversions
   if (updateData.quantityAvailable !== undefined) {
     updateData.quantityAvailable = Number(updateData.quantityAvailable);
   }
@@ -157,9 +163,6 @@ async function PUT(request: Request, { params }: { params: Promise<{ id: string 
     }
   }
 
-  // handle image uploads if provided
-  const imageFiles = formData.getAll("images") as File[];
-
   const parsedRequest = listingValidationSchema.safeParse(updateData);
   if (!parsedRequest.success) {
     return NextResponse.json(
@@ -172,15 +175,11 @@ async function PUT(request: Request, { params }: { params: Promise<{ id: string 
   }
 
   try {
-    let imageUrls: string[] | undefined;
+    const updatePayload: Partial<ListingInput> = { ...parsedRequest.data };
+    const imageFiles = getValidImageFiles(formData);
     if (imageFiles.length > 0) {
-      imageUrls = await uploadListingImages(imageFiles);
+      updatePayload.imageUrls = await uploadListingImages(imageFiles);
     }
-
-    const updatePayload: Partial<ListingInput> = {
-      ...parsedRequest.data,
-      ...(imageUrls ? { imageUrls } : {}),
-    };
 
     const updatedListing = await updateListing(parsedId.data, updatePayload);
 
@@ -218,10 +217,8 @@ async function PUT(request: Request, { params }: { params: Promise<{ id: string 
  * @param id the ID of the listing to get as part of the path params
  * @returns JSON response signaling the success of the listing deletion
  */
-async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+async function DELETE(request: Request, context: ListingRouteContext) {
+  const { id } = await context.params;
   const { allowed, reason } = await getSession("inventory:delete");
   if (!allowed) {
     return NextResponse.json(
@@ -242,7 +239,6 @@ async function DELETE(
     );
   }
 
-  const { id } = await params;
   const parsedId = objectIdSchema.safeParse(id);
   if (!parsedId.success) {
     return NextResponse.json(
