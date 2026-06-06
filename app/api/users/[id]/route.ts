@@ -10,7 +10,7 @@
 
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getUserById, updateUser, deleteUser } from "@/services/user";
+import { getUserById, updateUser } from "@/services/user";
 
 type Params = { id: string };
 
@@ -92,7 +92,7 @@ export async function PUT(request: Request, context: { params: Params }) {
  * @param request request object
  * @param context context object containing route parameters
  * @return response after deleting the user
- */
+ *
 export async function DELETE(request: Request, context: { params: Params }) {
     try {
         const parsedParams = z.object({ id: z.string().min(1) }).safeParse(
@@ -114,3 +114,4 @@ export async function DELETE(request: Request, context: { params: Params }) {
             { status: 500 });
     }
 }
+*/
