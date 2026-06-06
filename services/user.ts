@@ -42,3 +42,9 @@ export async function updateUser(
     }).exec();
     return updatedUser ? toUser(updatedUser) : null;
 }
+
+export async function deleteUser(id: string): Promise<IUser | null> {
+    await connectToDatabase();
+    const deletedUser = await User.findByIdAndDelete(id).exec();
+    return deletedUser ? toUser(deletedUser) : null;
+}
