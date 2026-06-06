@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { Types } from "mongoose";
 
 import { userLabRoleValues } from "@/models/UserLab";
 import {
@@ -91,8 +92,8 @@ export async function POST(request: Request) {
   try {
     const body = userLabBaseSchema.parse(await request.json());
     const created = await addUserLab({
-      user: body.user,
-      lab: body.lab,
+      user: new Types.ObjectId(body.user),
+      lab: new Types.ObjectId(body.lab),
       role: body.role ?? "VIEWER",
     });
 
@@ -112,7 +113,13 @@ export async function PUT(request: Request) {
       update: userLabUpdateSchema,
     });
     const parsed = validator.parse(await request.json());
-    const updated = await updateUserLab(parsed.id, parsed.update);
+    
+    // Convert string IDs to ObjectIds if they exist in update
+    const updateData: any = { ...parsed.update };
+    if (updateData.user) updateData.user = new Types.ObjectId(updateData.user);
+    if (updateData.lab) updateData.lab = new Types.ObjectId(updateData.lab);
+    
+    const updated = await updateUserLab(parsed.id, updateData);
 
     if (!updated) {
       return NextResponse.json({ message: "UserLab not found" }, { status: 404 });
