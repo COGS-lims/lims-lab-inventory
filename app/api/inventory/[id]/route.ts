@@ -15,8 +15,12 @@ const zEnumFromConst = <T extends readonly [string, ...string[]]>(values: T) =>
     z.enum(values as unknown as [T[number], ...T[number][]]);
 
 // GET: get an item by id
-export async function GET(_: Request, { params }: { params: { id: string } }) {
-    const parsedId = objectIdSchema.safeParse(params.id);
+export async function GET(
+    _: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    const { id } = await params;
+    const parsedId = objectIdSchema.safeParse(id);
     if (!parsedId.success) {
         return NextResponse.json(
             { message: parsedId.error.issues[0]?.message ?? "Invalid id" },
@@ -44,9 +48,10 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 // PUT: update an item by id
 export async function PUT(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const parsedId = objectIdSchema.safeParse(params.id);
+    const { id } = await params;
+    const parsedId = objectIdSchema.safeParse(id);
     if (!parsedId.success) {
         return NextResponse.json({ message: "Invalid id" }, { status: 400 });
     }
@@ -107,13 +112,13 @@ export async function PUT(
     }
 }
 
-// In the future, check for auth before usage to prevent unauthorized deletes
 // DELETE: Delete a product by id
 export async function DELETE(
     _: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const parsedId = objectIdSchema.safeParse(params.id);
+    const { id } = await params;
+    const parsedId = objectIdSchema.safeParse(id);
     if (!parsedId.success) {
         return NextResponse.json({ message: "Invalid id" }, { status: 400 });
     }
