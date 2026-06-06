@@ -29,10 +29,14 @@ const labUpdateSchema = z
  * @param context context object containing route parameters
  * @return response with lab data or error message
  */
-export async function GET(request: Request,  context : { params:  Params }) {
+export async function GET(
+    request: Request,
+    { params }: { params: Promise<Params> }
+) {
     try {
+        const { id } = await params;
         const parsedParams = z.object({ id: z.string().min(1) })
-            .safeParse(context.params);
+            .safeParse({ id });
         if (!parsedParams.success) {
             return NextResponse.json({ message: "Invalid ID" }, 
                 { status: 400 });
@@ -56,12 +60,16 @@ export async function GET(request: Request,  context : { params:  Params }) {
  * @param context context object containing route parameters
  * @return response after updating lab entry
  */
-export async function PUT(request: Request,  context : { params:  Params }) {
+export async function PUT(
+    request: Request,
+    { params }: { params: Promise<Params> }
+) {
     try {
+        const { id } = await params;
         // Validate the ID parameter and request body, then attempt to update 
         // the lab entry
         const parsedParams = z.object({ id: z.string().min(1) })
-            .safeParse(context.params);
+            .safeParse({ id });
         if (!parsedParams.success) {
             return NextResponse.json({ message: "Invalid ID" }, 
                 { status: 400 });
@@ -97,11 +105,15 @@ export async function PUT(request: Request,  context : { params:  Params }) {
  * @param context context object containing route parameters
  * @return response after deleting the lab entry
  */
-export async function DELETE(request: Request,  context : { params:  Params }) {
+export async function DELETE(
+    request: Request,
+    { params }: { params: Promise<Params> }
+) {
     try {
+        const { id } = await params;
         // Validate the ID parameter and attempt to delete the lab entry
         const parsedParams = z.object({ id: z.string().min(1) }).safeParse(
-            context.params);
+            { id });
         if (!parsedParams.success) {
             return NextResponse.json({ message: "Invalid ID" }, 
                 { status: 400 });
