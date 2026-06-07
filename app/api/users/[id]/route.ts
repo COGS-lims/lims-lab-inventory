@@ -23,7 +23,7 @@ const userUpdateSchema = z.object({
         last: z.string().min(1),
     }),
     role: z.enum(["PI", "LAB_MANAGER", "RESEARCHER", "VIEWER"]),
-    status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED", "PENDING_ASSIGNMENT"]),
+    status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED"]),
 });
 
 /**
